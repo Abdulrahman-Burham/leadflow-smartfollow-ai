@@ -82,6 +82,21 @@ export default function AutomationsHubPage() {
 
   const [generatingEscalation, setGeneratingEscalation] = useState(false);
 
+  const handleSummarizeCall = async (e) => {
+    e.preventDefault();
+    if (!rawNotes.trim()) return;
+    setSummarizing(true);
+    setSummaryResult(null);
+    try {
+      const res = await automationService.summarizeCall(selectedCustomerId || null, rawNotes);
+      setSummaryResult(res);
+    } catch (err) {
+      console.error('Failed to summarize call:', err);
+    } finally {
+      setSummarizing(false);
+    }
+  };
+
   const handleTriggerEscalation = async (c) => {
     setEscalationCustomer(c);
     setGeneratingEscalation(true);
