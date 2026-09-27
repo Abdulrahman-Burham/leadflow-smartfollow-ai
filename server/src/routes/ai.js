@@ -32,7 +32,7 @@ function getProviderEndpointAndModel(provider, customModel, customBaseUrl) {
         case 'groq':
             return {
                 endpoint: 'https://api.groq.com/openai/v1/chat/completions',
-                model: customModel || 'llama-3.3-70b-versatile'
+                model: customModel || 'allam-2-7b'
             };
         case 'openai':
             return {

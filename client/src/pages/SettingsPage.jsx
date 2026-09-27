@@ -208,7 +208,7 @@ function SettingsPage() {
                             onChange={(e) => {
                                 const prov = e.target.value;
                                 let defaultModel = 'meta-llama/llama-3.3-70b-instruct';
-                                if (prov === 'groq') defaultModel = 'llama-3.3-70b-versatile';
+                                if (prov === 'groq') defaultModel = 'allam-2-7b';
                                 if (prov === 'openai') defaultModel = 'gpt-4o-mini';
                                 if (prov === 'gemini') defaultModel = 'gemini-2.5-flash';
                                 if (prov === 'micromind') defaultModel = 'micromind-core-v1';
@@ -226,9 +226,9 @@ function SettingsPage() {
                                 fontWeight: 500
                             }}
                         >
+                            <option value="groq">⚡ Groq API (Allam-2-7B / Qwen 3.8 / GPT-OSS)</option>
                             <option value="openrouter">🌐 OpenRouter API (Access Llama 3.3, Claude, GPT-4o & DeepSeek)</option>
                             <option value="gemini">✨ Google Gemini (Gemini 2.5 Flash / Pro)</option>
-                            <option value="groq">⚡ Groq API (Llama 3.3 70B - Free & Super Fast)</option>
                             <option value="openai">🤖 OpenAI (GPT-4o / GPT-4o-mini)</option>
                             <option value="micromind">🧠 MicroMind Core Engine API</option>
                             <option value="local">💻 Intelligent Local Engine (SQLite Offline Analytics)</option>
