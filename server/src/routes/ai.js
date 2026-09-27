@@ -477,5 +477,8 @@ router.post('/agent-action', async (req, res) => {
     }
 });
 
+router.callLlmApi = callLlmApi;
+
 module.exports = router;
+
 
