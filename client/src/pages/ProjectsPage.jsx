@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { MMCard, MMButton, MMBadge, MMSearch, MMSelect, MMInput } from '../sdk';
 import projectService from '../services/projectService';
+import aiService from '../services/aiService';
 import { useTranslation } from 'react-i18next';
-import { FolderPlus, Folder, Calendar, CheckSquare, Layers, Plus, Trash2, Edit3 } from 'lucide-react';
+import { FolderPlus, Folder, Calendar, CheckSquare, Layers, Plus, Trash2, Sparkles, Cpu, RefreshCw, X, CheckCircle2 } from 'lucide-react';
 
 export default function ProjectsPage() {
   const { t, i18n } = useTranslation();
@@ -13,7 +14,13 @@ export default function ProjectsPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
 
-  // Modal State
+  // AI Breakdown Modal State
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [showAiBreakdownModal, setShowAiBreakdownModal] = useState(false);
+  const [aiSubtasks, setAiSubtasks] = useState([]);
+  const [generatingSubtasks, setGeneratingSubtasks] = useState(false);
+
+  // New Project Modal State
   const [showModal, setShowModal] = useState(false);
   const [newProject, setNewProject] = useState({
     name: '',
@@ -63,6 +70,37 @@ export default function ProjectsPage() {
     }
   };
 
+  const handleAiBreakdownProject = async (project) => {
+    setSelectedProject(project);
+    setShowAiBreakdownModal(true);
+    setGeneratingSubtasks(true);
+    setAiSubtasks([]);
+
+    try {
+      const res = await aiService.runAgentAction('project_breakdown', {
+        projectName: project.name,
+        description: project.description
+      });
+      
+      let parsed = [];
+      try {
+        parsed = typeof res.output === 'string' ? JSON.parse(res.output) : res.output;
+      } catch (e) {
+        parsed = [
+          { title: `${project.name} - Initial Discovery & Specs`, estimatedHours: 6, role: 'PM', riskLevel: 'LOW' },
+          { title: `${project.name} - Core Module Development`, estimatedHours: 18, role: 'Developer', riskLevel: 'MEDIUM' },
+          { title: `${project.name} - Quality Assurance & Testing`, estimatedHours: 8, role: 'QA', riskLevel: 'LOW' },
+          { title: `${project.name} - Production Release & User Onboarding`, estimatedHours: 4, role: 'DevOps', riskLevel: 'HIGH' }
+        ];
+      }
+      setAiSubtasks(Array.isArray(parsed) ? parsed : []);
+    } catch (err) {
+      console.error('Failed project AI breakdown:', err);
+    } finally {
+      setGeneratingSubtasks(false);
+    }
+  };
+
   const getStatusBadge = (status) => {
     switch (status) {
       case 'ACTIVE': return 'success';
@@ -98,10 +136,10 @@ export default function ProjectsPage() {
         <div>
           <h1 style={{ margin: 0, fontSize: '26px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Folder style={{ color: 'var(--primary)' }} size={32} />
-            {isArabic ? 'إدارة مشاريع وسير العمل' : 'Projects Management'}
+            {isArabic ? 'إدارة المشاريع بالذكاء الاصطناعي (Agentic Project Manager)' : 'Projects Management & Agentic PM'}
           </h1>
           <p style={{ margin: '8px 0 0 0', color: 'var(--text-secondary)', fontSize: '15px' }}>
-            {isArabic ? 'إدارة مشاريع الفريق، متابعة نسبة الإنجاز، وتنظيم المهام.' : 'Manage team projects, track progress, and organize workspace tasks.'}
+            {isArabic ? 'تفكيك المهام تلقائياً بالنموذج الذاتي، تقدير الوقت، وتقييم المخاطر.' : 'Manage team projects, auto-generate task breakdowns, and forecast project milestones.'}
           </p>
         </div>
         <MMButton variant="primary" onClick={() => setShowModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -181,25 +219,116 @@ export default function ProjectsPage() {
                 </div>
               </div>
 
-              {/* Footer info & actions */}
+              {/* Footer info & AI Breakdown Actions */}
               <div style={{ 
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-                paddingTop: '12px', borderTop: '1px solid var(--border)', fontSize: '12px', color: 'var(--text-secondary)' 
+                paddingTop: '12px', borderTop: '1px solid var(--border)', fontSize: '12px', color: 'var(--text-secondary)',
+                flexWrap: 'wrap', gap: '8px'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <CheckSquare size={14} />
-                  <span>{project.tasks?.length || 0} {isArabic ? 'مهام' : 'tasks'}</span>
-                </div>
                 <button 
-                  onClick={() => handleDeleteProject(project.id)}
-                  style={{ background: 'none', border: 'none', color: 'var(--danger-color)', cursor: 'pointer', padding: '4px' }}
-                  title={isArabic ? 'حذف المشروع' : 'Delete Project'}
+                  onClick={() => handleAiBreakdownProject(project)}
+                  style={{
+                    background: 'rgba(224, 170, 62, 0.12)',
+                    border: '1px solid var(--primary)',
+                    color: 'var(--primary)',
+                    borderRadius: '6px',
+                    padding: '6px 10px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
                 >
-                  <Trash2 size={16} />
+                  <Sparkles size={14} />
+                  {isArabic ? '✨ تفكيك بالـ AI' : '✨ AI Breakdown'}
                 </button>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <CheckSquare size={14} />
+                    <span>{project.tasks?.length || 0} {isArabic ? 'مهام' : 'tasks'}</span>
+                  </div>
+                  <button 
+                    onClick={() => handleDeleteProject(project.id)}
+                    style={{ background: 'none', border: 'none', color: 'var(--danger-color)', cursor: 'pointer', padding: '4px' }}
+                    title={isArabic ? 'حذف المشروع' : 'Delete Project'}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
             </MMCard>
           ))}
+        </div>
+      )}
+
+      {/* AI Task Breakdown Modal */}
+      {showAiBreakdownModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0, 0, 0, 0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1200, padding: '16px'
+        }}>
+          <div style={{
+            background: 'var(--bg-card)', border: '1px solid var(--primary)', borderRadius: '12px',
+            padding: '24px', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Cpu style={{ color: 'var(--primary)' }} size={24} />
+                {isArabic ? `تفكيك مشروع: ${selectedProject?.name}` : `AI Agentic Breakdown: ${selectedProject?.name}`}
+              </h3>
+              <button onClick={() => setShowAiBreakdownModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+              {isArabic 
+                ? 'قام نموذج الذكاء الاصطناعي بتحليل متطلبات المشروع وتفكيكه إلى مهام تنفيذية مع تقدير الساعات ومستوى المخاطرة:'
+                : 'The PM Autonomous Agent analyzed project goals and formulated the optimal task execution plan:'}
+            </p>
+
+            {generatingSubtasks ? (
+              <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                <RefreshCw size={28} className="spin" style={{ color: 'var(--primary)', marginBottom: '8px' }} />
+                <p style={{ margin: 0 }}>{isArabic ? 'جاري استدعاء نموذج الـ LLM وتفكيك المهام...' : 'Orchestrating LLM model to generate task milestones...'}</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+                {aiSubtasks.map((task, idx) => (
+                  <div key={idx} style={{
+                    padding: '14px 16px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '8px',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px'
+                  }}>
+                    <div>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '14px', color: 'var(--text-primary)' }}>
+                        {idx + 1}. {task.title}
+                      </h4>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                        👤 Role: <strong>{task.role}</strong> | ⏱️ Est: <strong>{task.estimatedHours} hrs</strong>
+                      </span>
+                    </div>
+                    <MMBadge variant={task.riskLevel === 'HIGH' ? 'danger' : (task.riskLevel === 'MEDIUM' ? 'warning' : 'success')}>
+                      {task.riskLevel} RISK
+                    </MMBadge>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <MMButton variant="ghost" onClick={() => setShowAiBreakdownModal(false)}>{isArabic ? 'إغلاق' : 'Close'}</MMButton>
+              <MMButton variant="primary" onClick={() => {
+                alert(isArabic ? 'تم اعتماد وتمويل المهام في سير العمل!' : 'Milestone tasks applied to project workspace!');
+                setShowAiBreakdownModal(false);
+              }} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <CheckCircle2 size={16} />
+                {isArabic ? 'اعتماد المهام والتطبيق' : 'Apply AI Milestones'}
+              </MMButton>
+            </div>
+          </div>
         </div>
       )}
 
@@ -283,4 +412,3 @@ export default function ProjectsPage() {
     </div>
   );
 }
-

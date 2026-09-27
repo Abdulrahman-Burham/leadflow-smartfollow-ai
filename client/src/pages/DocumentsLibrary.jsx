@@ -1,12 +1,39 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import managerService from '../services/managerService';
+import aiService from '../services/aiService';
 import CustomSelect from '../components/CustomSelect';
 import { useTranslation } from 'react-i18next';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const DocumentsLibrary = () => {
     const { t } = useTranslation();
     const [documents, setDocuments] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    // AI Document Audit state
+    const [selectedDocForAi, setSelectedDocForAi] = useState(null);
+    const [analyzingDoc, setAnalyzingDoc] = useState(false);
+    const [docAiAnalysis, setDocAiAnalysis] = useState('');
+
+    const handleAiAnalyzeDocument = async (doc) => {
+        setSelectedDocForAi(doc);
+        setAnalyzingDoc(true);
+        setDocAiAnalysis('');
+
+        try {
+            const res = await aiService.runAgentAction('document_analysis', {
+                title: doc.visit?.customerName || 'Audit Document',
+                content: `Document Type: ${doc.mediaType}, Customer: ${doc.visit?.customerName}, Region: ${doc.visit?.customerRegion}, Outcome: ${doc.visit?.outcomeStatus}, Collected Amount: $${doc.visit?.collectedAmount || 0}`
+            });
+            setDocAiAnalysis(res.output);
+        } catch (err) {
+            console.error('Document AI analysis error:', err);
+            setDocAiAnalysis('Failed to analyze document.');
+        } finally {
+            setAnalyzingDoc(false);
+        }
+    };
     const [filters, setFilters] = useState({
         collectorId: 'all',
         startDate: (() => {
@@ -432,36 +459,42 @@ const DocumentsLibrary = () => {
                                             </td>
 
                                             {/* Actions */}
-                                            <td style={{ padding: '1rem 1.5rem', textAlign: 'center' }}>
+                                            <td style={{ padding: '1rem 1.5rem', textAlign: 'center', display: 'flex', gap: '8px', justifyContent: 'center' }}>
                                                 <button
-                                                    onClick={() => handleDownload(doc)}
+                                                    onClick={() => handleAiAnalyzeDocument(doc)}
                                                     style={{
-                                                        padding: '0.5rem 1rem',
+                                                        padding: '0.5rem 0.85rem',
                                                         borderRadius: '6px',
-                                                        border: '1px solid #E0AA3E',
-                                                        backgroundColor: 'transparent',
-                                                        color: '#E0AA3E',
+                                                        border: '1px solid var(--primary)',
+                                                        backgroundColor: 'rgba(224, 170, 62, 0.1)',
+                                                        color: 'var(--primary)',
                                                         fontSize: '0.85rem',
                                                         fontWeight: '600',
                                                         cursor: 'pointer',
-                                                        transition: 'all 0.2s',
                                                         display: 'inline-flex',
                                                         alignItems: 'center',
-                                                        gap: '0.5rem'
-                                                    }}
-                                                    onMouseEnter={(e) => {
-                                                        e.target.style.backgroundColor = '#E0AA3E';
-                                                        e.target.style.color = '#000000';
-                                                    }}
-                                                    onMouseLeave={(e) => {
-                                                        e.target.style.backgroundColor = 'transparent';
-                                                        e.target.style.color = '#E0AA3E';
+                                                        gap: '0.35rem'
                                                     }}
                                                 >
-                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
-                                                    </svg>
-                                                    {t('documents.table.download')}
+                                                    ✨ AI Audit
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDownload(doc)}
+                                                    style={{
+                                                        padding: '0.5rem 0.85rem',
+                                                        borderRadius: '6px',
+                                                        border: '1px solid var(--border)',
+                                                        backgroundColor: 'transparent',
+                                                        color: 'var(--text-primary)',
+                                                        fontSize: '0.85rem',
+                                                        fontWeight: '600',
+                                                        cursor: 'pointer',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.35rem'
+                                                    }}
+                                                >
+                                                    📥 Download
                                                 </button>
                                             </td>
                                         </tr>
@@ -472,6 +505,43 @@ const DocumentsLibrary = () => {
                     </div>
                 )}
             </div>
+
+            {/* AI Document Audit Modal */}
+            {selectedDocForAi && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0, 0, 0, 0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1200, padding: '16px'
+                }}>
+                    <div style={{
+                        background: 'var(--bg-card)', border: '1px solid var(--primary)', borderRadius: '12px',
+                        padding: '24px', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                            <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                📄 AI Document Audit: {selectedDocForAi.visit?.customerName}
+                            </h3>
+                            <button onClick={() => setSelectedDocForAi(null)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '18px' }}>✕</button>
+                        </div>
+
+                        {analyzingDoc ? (
+                            <div style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                                <div className="spinner" style={{ marginBottom: '12px' }}></div>
+                                <p style={{ margin: 0 }}>Agentic AI analyzing document content & clauses...</p>
+                            </div>
+                        ) : (
+                            <div style={{ color: 'var(--text-primary)', lineHeight: '1.6', fontSize: '0.95rem' }}>
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{docAiAnalysis}</ReactMarkdown>
+                            </div>
+                        )}
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+                            <button onClick={() => setSelectedDocForAi(null)} style={{ padding: '8px 16px', background: 'var(--primary)', color: '#000', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}>
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
