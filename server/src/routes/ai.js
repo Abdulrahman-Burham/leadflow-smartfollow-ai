@@ -60,7 +60,12 @@ function getProviderEndpointAndModel(provider, customModel, customBaseUrl) {
  * Generate highly specialized, dynamic local AI responses based on exact intent
  */
 async function generateLocalAiResponse(question) {
-    const qLower = (question || '').trim().toLowerCase();
+    // Extract actual user prompt if prefix exists
+    let cleanPrompt = (question || '').trim();
+    if (cleanPrompt.includes('User Request:')) {
+        cleanPrompt = cleanPrompt.split('User Request:').pop().trim();
+    }
+    const qLower = cleanPrompt.toLowerCase();
 
     // Query live data from database
     let customers = [];
@@ -79,19 +84,8 @@ async function generateLocalAiResponse(question) {
     const completedTasks = tasks.filter(t => t.status === 'COMPLETED');
     const totalPipelineValue = customers.reduce((acc, c) => acc + (c.dealValue || 0), 0);
 
-    // 1. RECENT ACTIVITY
-    if (qLower.includes('recent activity') || qLower.includes('recent audit') || qLower === 'recent activity') {
-        const recentRows = customers.map(c => 
-            `| **${c.name}** | ${c.company || 'Individual'} | \`$${(c.dealValue || 0).toLocaleString()}\` | **${c.stage.replace('_', ' ')}** |`
-        ).join('\n');
-
-        return {
-            text: `### ⏱️ Recent Activity & Operations Audit\n\nHere is the latest real-time activity log from your database:\n\n| Client Name | Company | Deal Value | Current Stage |\n| :--- | :--- | :--- | :--- |\n${recentRows || '| No recent activity recorded | - | - | - |'}\n\n**Activity Breakdown:**\n- **New Leads Onboarded**: ${customers.length} total clients\n- **Tasks Completed**: ${completedTasks.length} action items logged\n- **Latest System Log**: Customer data synced with SmartFollow AI engine`
-        };
-    }
-
-    // 2. TEAM OVERVIEW / TEAM PERFORMANCE
-    if (qLower.includes('team overview') || qLower.includes('team performance') || qLower.includes('team') || qLower === 'team overview') {
+    // 1. TEAM OVERVIEW / TEAM PERFORMANCE
+    if (qLower.includes('team') || qLower.includes('فريق') || qLower.includes('اعضاء')) {
         const userRows = users.map(u => 
             `| **${u.displayName}** | \`${u.email}\` | **${u.role}** | Active |`
         ).join('\n');
@@ -101,8 +95,8 @@ async function generateLocalAiResponse(question) {
         };
     }
 
-    // 3. RISK ASSESSMENT / STALLED DEALS
-    if (qLower.includes('risk assessment') || qLower.includes('risk') || qLower.includes('stalled') || qLower === 'risk assessment') {
+    // 2. RISK ASSESSMENT / STALLED DEALS
+    if (qLower.includes('risk') || qLower.includes('مخاطر') || qLower.includes('تعثر') || qLower.includes('stalled')) {
         const highRisk = customers.filter(c => c.healthScore < 80 || c.stage === 'FOLLOW_UP_NEEDED');
         const atRiskValue = highRisk.reduce((acc, c) => acc + (c.dealValue || 0), 0);
 
@@ -111,15 +105,15 @@ async function generateLocalAiResponse(question) {
         };
     }
 
-    // 4. VISIT AUDIT / REPORT GENERATION
-    if (qLower.includes('visit audit') || qLower.includes('visit') || qLower.includes('audit report')) {
+    // 3. VISIT AUDIT / REPORT GENERATION
+    if (qLower.includes('visit') || qLower.includes('زيارة') || qLower.includes('ميداني') || qLower.includes('audit')) {
         return {
             text: `### 📋 Visit Audit & Field Operations Report\n\nSummary of field check-ins, customer site evaluations, and audit compliance:\n\n| Metric | Count | Status |\n| :--- | :--- | :--- |\n| **Scheduled Site Visits** | ${tasks.length} Visits | Planned |\n| **Verified Check-Ins** | 100% | GPS Verified |\n| **Audit Compliance** | Pass (99.2%) | Compliant |\n| **Photo / Media Attachments** | Synced | AWS S3 Ready |\n\n*All field visit records have been cross-checked with member schedules.*`
         };
     }
 
-    // 5. COLLECTIONS / DAILY ACTIONS
-    if (qLower.includes('daily actions') || qLower.includes('collections') || qLower.includes('cash')) {
+    // 4. COLLECTIONS / DAILY ACTIONS
+    if (qLower.includes('daily') || qLower.includes('action') || qLower.includes('تحصيل') || qLower.includes('متابعة') || qLower.includes('cash')) {
         const taskRows = pendingTasks.map(t =>
             `| **${t.title}** | ${t.customer?.name || 'Client'} | \`${t.type}\` | ${new Date(t.dueDate).toLocaleDateString()} |`
         ).join('\n');
@@ -129,9 +123,20 @@ async function generateLocalAiResponse(question) {
         };
     }
 
-    // 6. DEFAULT GENERAL AI RESPONSE
+    // 5. RECENT ACTIVITY
+    if (qLower.includes('recent') || qLower.includes('activity') || qLower.includes('نشاط')) {
+        const recentRows = customers.map(c => 
+            `| **${c.name}** | ${c.company || 'Individual'} | \`$${(c.dealValue || 0).toLocaleString()}\` | **${c.stage.replace('_', ' ')}** |`
+        ).join('\n');
+
+        return {
+            text: `### ⏱️ Recent Activity & Operations Audit\n\nHere is the latest real-time activity log from your database:\n\n| Client Name | Company | Deal Value | Current Stage |\n| :--- | :--- | :--- | :--- |\n${recentRows || '| No recent activity recorded | - | - | - |'}\n\n**Activity Breakdown:**\n- **New Leads Onboarded**: ${customers.length} total clients\n- **Tasks Completed**: ${completedTasks.length} action items logged\n- **Latest System Log**: Customer data synced with SmartFollow AI engine`
+        };
+    }
+
+    // 6. DEFAULT GENERAL DYNAMIC RESPONSE FOR ANY OTHER QUESTION
     return {
-        text: `### 🤖 MicroMind Co-Pilot Assistant\n\nI have processed your request for: **"${question}"**\n\n- **Workspace Context**: Acme Corporation (PRO Plan)\n- **Active Customers**: ${customers.length} clients loaded (\`$${totalPipelineValue.toLocaleString()}\` pipeline)\n- **Pending Follow-up Tasks**: ${pendingTasks.length} tasks scheduled\n\nPlease select one of the quick prompts or ask any specific question about your pipeline or reports!`
+        text: `### 🤖 MicroMind Co-Pilot Assistant\n\nI have processed your query: **"${cleanPrompt}"**\n\n- **Workspace Status**: Active Pipeline Loaded\n- **Total Customers**: ${customers.length} clients (\`$${totalPipelineValue.toLocaleString()}\` total value)\n- **Pending Follow-up Actions**: ${pendingTasks.length} tasks scheduled\n\nHow else can I assist you with your pipeline analytics or team operations today?`
     };
 }
 

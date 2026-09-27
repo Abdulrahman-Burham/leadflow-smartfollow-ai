@@ -240,16 +240,7 @@ const AIAgentChat = () => {
         let textToSend = text;
 
         // Message Amendment Logic based on Mode
-        if (activeMode === 'Conversation') {
-            const allMessages = currentMessages || messages;
-            const hasUserMessages = allMessages.some(m => m.sender === 'user');
-            const lastAiMessage = [...allMessages].reverse().find(m => m.sender === 'ai');
-
-            // Only amend if there's a history of user interaction
-            if (lastAiMessage && hasUserMessages) {
-                textToSend = `your last response was to the user request: ${lastAiMessage.text}\n\nUser Request: ${text}`;
-            }
-        } else if (activeMode === 'Reports') {
+        if (activeMode === 'Reports') {
             textToSend = `${text} in a tabular format all dates.`;
         } else if (activeMode === 'Analysis') {
             textToSend = `${text}. this required for analysis provide comparisons on the proper chart view whenever possible.`;
