@@ -5,7 +5,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 /**
- * AI Chat Routes - Supports Groq, OpenAI, Gemini, MicroMind Core & Smart Local Fallback
+ * AI Chat Routes - Supports OpenRouter, Groq, OpenAI, Gemini, MicroMind Core & Smart Local Fallback
  */
 
 const DEFAULT_CHATFLOW_ID = process.env.AI_CHATFLOW_ID || 'default-chatflow';
@@ -16,14 +16,19 @@ const isPlaceholderKey = (key) => {
 
 // In-Memory AI Configuration State (with fallback to .env)
 let activeAiConfig = {
-    provider: process.env.AI_PROVIDER || (process.env.GEMINI_API_KEY ? 'gemini' : (process.env.GROQ_API_KEY ? 'groq' : (process.env.OPENAI_API_KEY ? 'openai' : (process.env.AI_API_KEY ? 'micromind' : 'local')))),
-    apiKey: process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY || process.env.AI_API_KEY || '',
-    model: process.env.AI_MODEL || (process.env.GEMINI_API_KEY ? 'gemini-2.5-flash' : ''),
+    provider: process.env.AI_PROVIDER || (process.env.OPENROUTER_API_KEY ? 'openrouter' : (process.env.GEMINI_API_KEY ? 'gemini' : (process.env.GROQ_API_KEY ? 'groq' : (process.env.OPENAI_API_KEY ? 'openai' : (process.env.AI_API_KEY ? 'micromind' : 'local'))))),
+    apiKey: process.env.OPENROUTER_API_KEY || process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY || process.env.AI_API_KEY || '',
+    model: process.env.AI_MODEL || (process.env.OPENROUTER_API_KEY ? 'meta-llama/llama-3.3-70b-instruct' : (process.env.GEMINI_API_KEY ? 'gemini-2.5-flash' : '')),
     baseUrl: process.env.AI_API_URL || 'https://dev.aimicromind.com'
 };
 
 function getProviderEndpointAndModel(provider, customModel, customBaseUrl) {
     switch (provider) {
+        case 'openrouter':
+            return {
+                endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+                model: customModel || 'meta-llama/llama-3.3-70b-instruct'
+            };
         case 'groq':
             return {
                 endpoint: 'https://api.groq.com/openai/v1/chat/completions',
@@ -173,13 +178,20 @@ async function callLlmApi(systemPrompt, userPrompt, overrideConfig = null) {
                 console.warn(`⚠️ [GEMINI] HTTP ${res.status}:`, errText);
             }
         } else {
-            // OpenAI / Groq / MicroMind API format
+            // OpenRouter / OpenAI / Groq / MicroMind API format
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            };
+
+            if (provider === 'openrouter') {
+                headers['HTTP-Referer'] = 'https://aimicromind.com';
+                headers['X-Title'] = 'MicroMind LeadFlow';
+            }
+
             const res = await fetch(endpoint, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
+                headers,
                 body: JSON.stringify({
                     model,
                     messages: [
@@ -237,7 +249,7 @@ router.get('/config', (req, res) => {
         provider: activeAiConfig.provider,
         model,
         isConfigured,
-        maskedKey: isConfigured ? `${activeAiConfig.apiKey.substring(0, 6)}...${activeAiConfig.apiKey.slice(-4)}` : '',
+        maskedKey: isConfigured ? `${activeAiConfig.apiKey.substring(0, 8)}...${activeAiConfig.apiKey.slice(-4)}` : '',
         baseUrl: activeAiConfig.baseUrl
     });
 });
