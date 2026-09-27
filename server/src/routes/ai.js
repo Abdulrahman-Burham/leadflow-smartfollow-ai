@@ -16,9 +16,9 @@ const isPlaceholderKey = (key) => {
 
 // In-Memory AI Configuration State (with fallback to .env)
 let activeAiConfig = {
-    provider: process.env.AI_PROVIDER || (process.env.GROQ_API_KEY ? 'groq' : (process.env.OPENAI_API_KEY ? 'openai' : (process.env.GEMINI_API_KEY ? 'gemini' : (process.env.AI_API_KEY ? 'micromind' : 'local')))),
-    apiKey: process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY || process.env.AI_API_KEY || '',
-    model: process.env.AI_MODEL || '',
+    provider: process.env.AI_PROVIDER || (process.env.GEMINI_API_KEY ? 'gemini' : (process.env.GROQ_API_KEY ? 'groq' : (process.env.OPENAI_API_KEY ? 'openai' : (process.env.AI_API_KEY ? 'micromind' : 'local')))),
+    apiKey: process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY || process.env.AI_API_KEY || '',
+    model: process.env.AI_MODEL || (process.env.GEMINI_API_KEY ? 'gemini-2.5-flash' : ''),
     baseUrl: process.env.AI_API_URL || 'https://dev.aimicromind.com'
 };
 
@@ -35,9 +35,10 @@ function getProviderEndpointAndModel(provider, customModel, customBaseUrl) {
                 model: customModel || 'gpt-4o-mini'
             };
         case 'gemini':
+            const geminiModel = customModel || 'gemini-2.5-flash';
             return {
-                endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
-                model: customModel || 'gemini-1.5-flash'
+                endpoint: `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`,
+                model: geminiModel
             };
         case 'micromind':
             return {
@@ -145,34 +146,61 @@ async function callLlmApi(systemPrompt, userPrompt, overrideConfig = null) {
     if (!endpoint) return null;
 
     try {
-        console.log(`🤖 Invoking [${provider.toUpperCase()}] LLM model (${model}) via ${endpoint}...`);
+        console.log(`🤖 Invoking [${provider.toUpperCase()}] LLM model (${model})...`);
 
-        const res = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model,
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userPrompt }
-                ],
-                temperature: 0.7
-            })
-        });
+        if (provider === 'gemini') {
+            const url = `${endpoint}?key=${apiKey}`;
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    system_instruction: { parts: [{ text: systemPrompt }] },
+                    contents: [{ parts: [{ text: userPrompt }] }]
+                })
+            });
 
-        if (res.ok) {
-            const data = await res.json();
-            const text = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : null;
-            if (text) {
-                console.log(`✅ [${provider.toUpperCase()}] Response received successfully (${text.length} chars)`);
-                return text;
+            if (res.ok) {
+                const data = await res.json();
+                const text = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts
+                    ? data.candidates[0].content.parts.map(p => p.text).join('')
+                    : null;
+                if (text) {
+                    console.log(`✅ [GEMINI] Response received successfully (${text.length} chars)`);
+                    return text;
+                }
+            } else {
+                const errText = await res.text();
+                console.warn(`⚠️ [GEMINI] HTTP ${res.status}:`, errText);
             }
         } else {
-            const errText = await res.text();
-            console.warn(`⚠️ [${provider.toUpperCase()}] HTTP ${res.status}:`, errText);
+            // OpenAI / Groq / MicroMind API format
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model,
+                    messages: [
+                        { role: 'system', content: systemPrompt },
+                        { role: 'user', content: userPrompt }
+                    ],
+                    temperature: 0.7
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                const text = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : null;
+                if (text) {
+                    console.log(`✅ [${provider.toUpperCase()}] Response received successfully (${text.length} chars)`);
+                    return text;
+                }
+            } else {
+                const errText = await res.text();
+                console.warn(`⚠️ [${provider.toUpperCase()}] HTTP ${res.status}:`, errText);
+            }
         }
     } catch (e) {
         console.warn(`⚠️ [${provider.toUpperCase()}] LLM Error:`, e.message);
