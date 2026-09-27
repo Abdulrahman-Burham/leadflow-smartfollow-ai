@@ -209,6 +209,15 @@ const Sidebar = ({ onNavigate }) => {
                         <span className="nav-label">{t('nav.aiWorkflows', 'AI Workflows')}</span>
                     </button>
 
+                    {/* Data & Integrations Hub */}
+                    <button
+                        className={`nav-item ${isActive('/integrations') ? 'active' : ''}`}
+                        onClick={() => handleNavigation('/integrations')}
+                    >
+                        <Sparkles size={18} className="nav-icon" style={{ color: 'var(--primary)' }} />
+                        <span className="nav-label">Onboarding & Data Hub</span>
+                    </button>
+
                     {/* My Co-Pilots */}
                     <button
                         className={`nav-item ${isActive('/copilots') ? 'active' : ''}`}
