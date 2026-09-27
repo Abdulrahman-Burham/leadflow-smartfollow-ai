@@ -47,8 +47,15 @@ export default function AutomationsHubPage() {
       const allCust = custData.customers || [];
       setCustomers(allCust);
 
-      // Risk computation
-      const highRisk = allCust.filter(c => c.healthScore < 80 || c.stage === 'FOLLOW_UP_NEEDED');
+      // Risk computation (Deduplicate high-risk deals by customer ID / name)
+      const highRisk = [];
+      const seenNames = new Set();
+      allCust.filter(c => c.healthScore < 80 || c.stage === 'FOLLOW_UP_NEEDED').forEach(c => {
+        if (!seenNames.has(c.name)) {
+          seenNames.add(c.name);
+          highRisk.push(c);
+        }
+      });
       setRiskData(highRisk);
     } catch (err) {
       console.error('Failed to load automation hub data:', err);
@@ -57,36 +64,42 @@ export default function AutomationsHubPage() {
     }
   };
 
-  const handleSummarizeCall = async (e) => {
-    e.preventDefault();
-    if (!rawNotes.trim()) return;
-    try {
-      setSummarizing(true);
-      const result = await automationService.summarizeCall(selectedCustomerId, rawNotes);
-      setSummaryResult(result);
-    } catch (err) {
-      console.error('Failed to summarize call:', err);
-    } finally {
-      setSummarizing(false);
-    }
-  };
+  const [generatingEscalation, setGeneratingEscalation] = useState(false);
 
-  const handleTriggerEscalation = (c) => {
-    const msg = isArabic 
-      ? `⚠️ تنبيه تصعيد عاجل لمخاطر الصفقة لـ ${c.name} (${c.company || 'فردي'}):\n• مؤشر صحة الصفقة: ${c.healthScore}/100\n• قيمة الصفقة: $${(c.dealValue || 0).toLocaleString()}\n• الإجراء المطلوب: تواصل فوري من الإدارة لمتابعة الصفقة وتفادي الانسحاب.`
-      : `⚠️ Urgent Deal Churn Risk Escalation Alert for ${c.name} (${c.company || 'Individual'}):\n• Health Score: ${c.healthScore}/100\n• Deal Value: $${(c.dealValue || 0).toLocaleString()}\n• Required Action: Immediate manager intervention requested to retain deal.`;
-    
+  const handleTriggerEscalation = async (c) => {
     setEscalationCustomer(c);
-    setEscalationMsg(msg);
+    setGeneratingEscalation(true);
     setCopiedEscalation(false);
 
-    if (c.phone) {
-      const cleanPhone = c.phone.replace(/[^0-9]/g, '');
-      try {
-        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-      } catch (e) {
-        console.error('Window open blocked:', e);
+    const initialMsg = isArabic 
+      ? `🧠 جاري تحليل المخاطر وتوليد رسالة التصعيد بواسطة الوكيل الذكي (Agentic AI) لـ ${c.name}...`
+      : `🧠 Agentic AI analyzing deal churn risks for ${c.name}...`;
+    setEscalationMsg(initialMsg);
+
+    try {
+      const prompt = isArabic
+        ? `أنت وكيل مبيعات ذكي (Agentic AI). قم بتحليل خطر انسحاب الصفقة للعميل "${c.name}" (شركة: ${c.company || 'فردي'}، قيمة الصفقة: $${(c.dealValue || 0).toLocaleString()}، مؤشر الصحة: ${c.healthScore}/100، المرحلة: ${c.stage}). صغ رسالة تصعيد عاجلة واحترافية ومخصصة لإرسالها عبر الواتساب للمدير تشرح سبب الخطورة والإجراء المقترح.`
+        : `You are an Agentic AI Sales Escalation Agent. Analyze churn risk for deal "${c.name}" (Company: ${c.company || 'Individual'}, Value: $${(c.dealValue || 0).toLocaleString()}, Health: ${c.healthScore}/100, Stage: ${c.stage}). Write a concise, urgent, highly personalized WhatsApp escalation alert to management with recommended action.`;
+
+      const res = await fetch('/api/v1/ai/chat/default-chatflow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: prompt })
+      });
+      const data = await res.json();
+
+      if (data && data.text) {
+        setEscalationMsg(data.text);
+      } else {
+        const fallbackMsg = isArabic 
+          ? `⚠️ تنبيه تصعيد عاجل لمخاطر الصفقة لـ ${c.name} (${c.company || 'فردي'}):\n• مؤشر صحة الصفقة: ${c.healthScore}/100\n• قيمة الصفقة: $${(c.dealValue || 0).toLocaleString()}\n• الإجراء المطلوب: تواصل فوري من الإدارة لمتابعة الصفقة وتفادي الانسحاب.`
+          : `⚠️ Urgent Deal Churn Risk Escalation Alert for ${c.name} (${c.company || 'Individual'}):\n• Health Score: ${c.healthScore}/100\n• Deal Value: $${(c.dealValue || 0).toLocaleString()}\n• Required Action: Immediate manager intervention requested to retain deal.`;
+        setEscalationMsg(fallbackMsg);
       }
+    } catch (err) {
+      console.warn('AI Escalation error:', err);
+    } finally {
+      setGeneratingEscalation(false);
     }
   };
 
