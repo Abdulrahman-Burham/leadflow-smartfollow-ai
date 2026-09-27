@@ -1,0 +1,2 @@
+file 'D:/learn/micro mind/YourApp/scripts/temp_demo/scene_2_chunk_0.mp3'
+file 'D:/learn/micro mind/YourApp/scripts/temp_demo/scene_2_chunk_1.mp3'

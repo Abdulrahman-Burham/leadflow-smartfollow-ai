@@ -1,0 +1,19 @@
+file 'D:/learn/micro mind/YourApp/scripts/temp_demo/frame_scene_0.png'
+duration 20.760
+file 'D:/learn/micro mind/YourApp/scripts/temp_demo/frame_scene_1.png'
+duration 21.720
+file 'D:/learn/micro mind/YourApp/scripts/temp_demo/frame_scene_2.png'
+duration 30.600
+file 'D:/learn/micro mind/YourApp/scripts/temp_demo/frame_scene_3.png'
+duration 21.020
+file 'D:/learn/micro mind/YourApp/scripts/temp_demo/frame_scene_4.png'
+duration 21.310
+file 'D:/learn/micro mind/YourApp/scripts/temp_demo/frame_scene_5.png'
+duration 13.970
+file 'D:/learn/micro mind/YourApp/scripts/temp_demo/frame_scene_6.png'
+duration 16.800
+file 'D:/learn/micro mind/YourApp/scripts/temp_demo/frame_scene_7.png'
+duration 14.160
+file 'D:/learn/micro mind/YourApp/scripts/temp_demo/frame_scene_8.png'
+duration 18.600
+file 'D:/learn/micro mind/YourApp/scripts/temp_demo/frame_scene_8.png'

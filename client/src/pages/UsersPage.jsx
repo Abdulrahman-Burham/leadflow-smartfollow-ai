@@ -59,8 +59,10 @@ export default function UsersPage() {
   const [errorMessage, setErrorMessage] = useState('');
 
   // Read Logged-In User Role
-  const currentUserStr = localStorage.getItem('user');
-  const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null;
+  const [currentUser, setCurrentUser] = useState(() => {
+    const currentUserStr = localStorage.getItem('user');
+    return currentUserStr ? JSON.parse(currentUserStr) : null;
+  });
   const userRole = currentUser?.role || 'ADMIN';
   const isReadOnly = userRole === 'VIEWER';
   const canManageUsers = userRole === 'ADMIN' || userRole === 'MANAGER';
@@ -133,8 +135,17 @@ export default function UsersPage() {
     }
 
     try {
+      const targetUser = users.find(u => u.id === userId);
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
       await userService.updateUser(userId, { role: newRole });
+
+      // Sync localStorage and component state if changing current logged in user
+      if (currentUser && (currentUser.id === userId || currentUser.email === targetUser?.email)) {
+        const updatedSelf = { ...currentUser, role: newRole };
+        localStorage.setItem('user', JSON.stringify(updatedSelf));
+        setCurrentUser(updatedSelf);
+      }
+
       showToast(isArabic ? `تم تغيير دور المستخدم إلى ${newRole}` : `⚡ User role updated to ${newRole}!`);
       fetchUsers();
     } catch (err) {
