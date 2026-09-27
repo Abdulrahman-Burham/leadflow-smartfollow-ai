@@ -409,7 +409,7 @@ export default function UsersPage() {
                 </label>
                 <MMSelect 
                   value={selectedRole} 
-                  onChange={(e) => setSelectedRole(e.target.value)}
+                  onChange={(val) => setSelectedRole(typeof val === 'object' && val?.target ? val.target.value : val)}
                   options={[
                     { value: 'ADMIN', label: isArabic ? 'ADMIN (مدير بنظام كامل)' : 'ADMIN (Full Administrative Control)' },
                     { value: 'MANAGER', label: isArabic ? 'MANAGER (مدير المبيعات والمشاريع)' : 'MANAGER (Sales & Project Manager)' },
@@ -518,7 +518,10 @@ export default function UsersPage() {
                   </label>
                   <MMSelect 
                     value={newUser.role} 
-                    onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                    onChange={(val) => {
+                      const roleVal = typeof val === 'object' && val?.target ? val.target.value : val;
+                      setNewUser(prev => ({ ...prev, role: roleVal }));
+                    }}
                     options={[
                       { value: 'ADMIN', label: isArabic ? 'ADMIN (مدير كامل)' : 'ADMIN (Full Access)' },
                       { value: 'MANAGER', label: isArabic ? 'MANAGER (مدير مبيعات)' : 'MANAGER (Sales & Projects)' },

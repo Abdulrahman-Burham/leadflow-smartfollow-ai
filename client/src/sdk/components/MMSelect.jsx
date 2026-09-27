@@ -34,7 +34,13 @@ const MMSelect = ({
     }, []);
 
     const handleSelect = (optionValue) => {
-        onChange(optionValue);
+        if (typeof onChange === 'function') {
+            const syntheticEvent = {
+                target: { value: optionValue },
+                currentTarget: { value: optionValue }
+            };
+            onChange(syntheticEvent, optionValue);
+        }
         setIsOpen(false);
     };
 
