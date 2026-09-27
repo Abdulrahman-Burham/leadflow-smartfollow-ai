@@ -543,6 +543,22 @@
             "twoFactorDesc": "Add an extra layer of security to your account",
             "changePassword": "Change Password"
         },
+        "aiEngine": {
+            "title": "AI Models & LLM API Integration",
+            "subtitle": "Connect external LLM models (Groq, OpenAI, Gemini, MicroMind) or use local data fallback",
+            "provider": "AI Provider",
+            "apiKey": "API Key",
+            "apiKeyPlaceholder": "Paste your API key here...",
+            "model": "Model Name (Optional)",
+            "modelPlaceholder": "e.g. llama-3.3-70b-versatile, gpt-4o-mini",
+            "testBtn": "Test Connection",
+            "testing": "Testing connection...",
+            "statusConnected": "Connected! LLM Provider is operational.",
+            "statusFailed": "Connection Failed. Check your API key or endpoint.",
+            "activeEngine": "Active AI Mode",
+            "modeLocal": "Local Smart Engine (SQLite Data Analytics)",
+            "modeExternal": "Live External LLM API Connected"
+        },
         "buttons": {
             "cancel": "Cancel",
             "save": "Save Changes"

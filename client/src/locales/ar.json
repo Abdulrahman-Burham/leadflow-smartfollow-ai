@@ -542,6 +542,22 @@
             "twoFactorDesc": "إضافة طبقة أمان إضافية لحسابك",
             "changePassword": "تغيير كلمة المرور"
         },
+        "aiEngine": {
+            "title": "ربط نماذج الذكاء الاصطناعي و APIs",
+            "subtitle": "ربط نماذج LLM الخارجية (Groq, OpenAI, Gemini, MicroMind) أو استخدام المحرك المحلي الفوري",
+            "provider": "مزود الذكاء الاصطناعي",
+            "apiKey": "مفتاح API Key",
+            "apiKeyPlaceholder": "الصق مفتاح الـ API الخاص بك هنا...",
+            "model": "اسم النموذج (اختياري)",
+            "modelPlaceholder": "مثال: llama-3.3-70b-versatile, gpt-4o-mini",
+            "testBtn": "اختبار الاتصال",
+            "testing": "جارٍ الاختبار...",
+            "statusConnected": "تم الاتصال بنجاح! مزود LLM يعمل جاهزاً.",
+            "statusFailed": "فشل الاتصال. تحقق من مفتاح الـ API أو المسار.",
+            "activeEngine": "وضع الذكاء الاصطناعي النشط",
+            "modeLocal": "المحرك المحلي الذكي (تحليلات SQLite)",
+            "modeExternal": "متصل مباشرة عبر API خارجي"
+        },
         "buttons": {
             "cancel": "إلغاء",
             "save": "حفظ التغييرات"

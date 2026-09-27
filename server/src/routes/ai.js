@@ -5,16 +5,50 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 /**
- * AI Chat Routes - Proxies to MicroMind Core AI Backend with Smart Local Fallback
+ * AI Chat Routes - Supports Groq, OpenAI, Gemini, MicroMind Core & Smart Local Fallback
  */
 
-const AI_API_URL = process.env.AI_API_URL || 'https://dev.aimicromind.com';
-const AI_API_KEY = process.env.AI_API_KEY;
-const DEFAULT_CHATFLOW_ID = process.env.AI_CHATFLOW_ID;
+const DEFAULT_CHATFLOW_ID = process.env.AI_CHATFLOW_ID || 'default-chatflow';
 
 const isPlaceholderKey = (key) => {
     return !key || key === 'your-micromind-api-key' || key.includes('placeholder') || key.length < 10;
 };
+
+// In-Memory AI Configuration State (with fallback to .env)
+let activeAiConfig = {
+    provider: process.env.AI_PROVIDER || (process.env.GROQ_API_KEY ? 'groq' : (process.env.OPENAI_API_KEY ? 'openai' : (process.env.GEMINI_API_KEY ? 'gemini' : (process.env.AI_API_KEY ? 'micromind' : 'local')))),
+    apiKey: process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY || process.env.AI_API_KEY || '',
+    model: process.env.AI_MODEL || '',
+    baseUrl: process.env.AI_API_URL || 'https://dev.aimicromind.com'
+};
+
+function getProviderEndpointAndModel(provider, customModel, customBaseUrl) {
+    switch (provider) {
+        case 'groq':
+            return {
+                endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+                model: customModel || 'llama-3.3-70b-versatile'
+            };
+        case 'openai':
+            return {
+                endpoint: (customBaseUrl || 'https://api.openai.com/v1') + '/chat/completions',
+                model: customModel || 'gpt-4o-mini'
+            };
+        case 'gemini':
+            return {
+                endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+                model: customModel || 'gemini-1.5-flash'
+            };
+        case 'micromind':
+            return {
+                endpoint: (customBaseUrl || 'https://dev.aimicromind.com') + '/api/v1/ai/chat/completions',
+                model: customModel || 'micromind-core-v1'
+            };
+        case 'local':
+        default:
+            return { endpoint: null, model: 'sqlite-smart-analytics' };
+    }
+}
 
 /**
  * Generate highly specialized, dynamic local AI responses based on exact intent
@@ -95,58 +129,167 @@ async function generateLocalAiResponse(question) {
     };
 }
 
-// POST /api/v1/ai/chat/:chatflowId - Proxy chat to MicroMind AI with smart fallback
-router.post('/chat/:chatflowId', async (req, res) => {
-    const { question, chatflowId: bodyChatflowId, chatId } = req.body;
-    const chatflowId = bodyChatflowId || req.params.chatflowId || DEFAULT_CHATFLOW_ID;
+/**
+ * Call external LLM API based on configured provider
+ */
+async function callLlmApi(systemPrompt, userPrompt, overrideConfig = null) {
+    const config = overrideConfig || activeAiConfig;
+    const provider = config.provider || 'local';
+    const apiKey = config.apiKey;
 
-    // If using default placeholder keys, use intelligent local fallback
-    if (isPlaceholderKey(AI_API_KEY)) {
-        console.log(`🤖 AI Query received: "${question}"`);
-        const fallbackResponse = await generateLocalAiResponse(question);
-        return res.json(fallbackResponse);
+    if (provider === 'local' || !apiKey || isPlaceholderKey(apiKey)) {
+        return null;
     }
 
-    const targetChatflowId = (!chatflowId || chatflowId === 'micromind' || chatflowId === 'e2b' || chatflowId === 'null')
-        ? DEFAULT_CHATFLOW_ID
-        : chatflowId;
-
-    const targetUrl = `${AI_API_URL}/api/v1/prediction/${targetChatflowId}`;
-    console.log(`🤖 Proxying AI request to: ${targetUrl}`);
+    const { endpoint, model } = getProviderEndpointAndModel(provider, config.model, config.baseUrl);
+    if (!endpoint) return null;
 
     try {
-        const payload = { question };
-        if (chatId) payload.chatId = chatId;
+        console.log(`🤖 Invoking [${provider.toUpperCase()}] LLM model (${model}) via ${endpoint}...`);
 
-        const response = await fetch(targetUrl, {
+        const res = await fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${AI_API_KEY}`
+                'Authorization': `Bearer ${apiKey}`
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                model,
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                ],
+                temperature: 0.7
+            })
         });
 
-        if (!response.ok) {
-            console.warn(`⚠️ External AI API returned ${response.status}. Using smart fallback.`);
-            const fallbackResponse = await generateLocalAiResponse(question);
-            return res.json(fallbackResponse);
+        if (res.ok) {
+            const data = await res.json();
+            const text = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : null;
+            if (text) {
+                console.log(`✅ [${provider.toUpperCase()}] Response received successfully (${text.length} chars)`);
+                return text;
+            }
+        } else {
+            const errText = await res.text();
+            console.warn(`⚠️ [${provider.toUpperCase()}] HTTP ${res.status}:`, errText);
         }
+    } catch (e) {
+        console.warn(`⚠️ [${provider.toUpperCase()}] LLM Error:`, e.message);
+    }
+    return null;
+}
 
-        const data = await response.json();
-        console.log(`✅ External AI response received (${data.text?.length || 0} chars)`);
-        res.json(data);
-    } catch (error) {
-        console.warn('⚠️ Could not connect to external AI API. Using smart local fallback:', error.message);
-        const fallbackResponse = await generateLocalAiResponse(question);
-        res.json(fallbackResponse);
+// POST /api/v1/ai/chat/:chatflowId - Proxy chat to active LLM provider with smart fallback
+router.post('/chat/:chatflowId', async (req, res) => {
+    const { question, chatflowId: bodyChatflowId } = req.body;
+
+    // 1. Attempt External LLM Call
+    const llmResponse = await callLlmApi(
+        "You are LeadFlow / MicroMind Co-Pilot, an intelligent sales, CRM, and workflow assistant. Answer clearly in markdown with actionable SaaS guidance.",
+        question
+    );
+
+    if (llmResponse) {
+        return res.json({ text: llmResponse });
+    }
+
+    // 2. Fallback to Local Data-Driven Engine
+    console.log(`🤖 Fallback to MicroMind Local Data Engine for: "${question}"`);
+    const fallbackResponse = await generateLocalAiResponse(question);
+    return res.json(fallbackResponse);
+});
+
+// GET /api/v1/ai/config - Fetch current LLM API configuration status
+router.get('/config', (req, res) => {
+    const isConfigured = !!activeAiConfig.apiKey && !isPlaceholderKey(activeAiConfig.apiKey);
+    const { model } = getProviderEndpointAndModel(activeAiConfig.provider, activeAiConfig.model, activeAiConfig.baseUrl);
+
+    res.json({
+        provider: activeAiConfig.provider,
+        model,
+        isConfigured,
+        maskedKey: isConfigured ? `${activeAiConfig.apiKey.substring(0, 6)}...${activeAiConfig.apiKey.slice(-4)}` : '',
+        baseUrl: activeAiConfig.baseUrl
+    });
+});
+
+// POST /api/v1/ai/config - Update LLM API provider and keys at runtime
+router.post('/config', (req, res) => {
+    const { provider, apiKey, model, baseUrl } = req.body;
+
+    if (provider) activeAiConfig.provider = provider;
+    if (apiKey !== undefined) activeAiConfig.apiKey = apiKey;
+    if (model !== undefined) activeAiConfig.model = model;
+    if (baseUrl !== undefined) activeAiConfig.baseUrl = baseUrl;
+
+    console.log(`⚙️ AI Config updated: Provider=${activeAiConfig.provider}, Model=${activeAiConfig.model}`);
+
+    const isConfigured = !!activeAiConfig.apiKey && !isPlaceholderKey(activeAiConfig.apiKey);
+    const resolved = getProviderEndpointAndModel(activeAiConfig.provider, activeAiConfig.model, activeAiConfig.baseUrl);
+
+    res.json({
+        success: true,
+        message: 'AI API Configuration updated successfully!',
+        config: {
+            provider: activeAiConfig.provider,
+            model: resolved.model,
+            isConfigured
+        }
+    });
+});
+
+// POST /api/v1/ai/test-key - Live connection test for LLM provider
+router.post('/test-key', async (req, res) => {
+    const { provider, apiKey, model, baseUrl } = req.body;
+
+    const testConfig = {
+        provider: provider || activeAiConfig.provider,
+        apiKey: apiKey || activeAiConfig.apiKey,
+        model: model || activeAiConfig.model,
+        baseUrl: baseUrl || activeAiConfig.baseUrl
+    };
+
+    if (testConfig.provider === 'local') {
+        return res.json({
+            success: true,
+            provider: 'local',
+            message: 'Local Smart Data Analytics Engine is ready & active (SQLite).'
+        });
+    }
+
+    if (!testConfig.apiKey || isPlaceholderKey(testConfig.apiKey)) {
+        return res.status(400).json({
+            success: false,
+            message: 'Please provide a valid API key to test connection.'
+        });
+    }
+
+    const testResponse = await callLlmApi(
+        "Respond with a 1-sentence confirmation message starting with 'Connection Verified:'",
+        "Test connection",
+        testConfig
+    );
+
+    if (testResponse) {
+        return res.json({
+            success: true,
+            provider: testConfig.provider,
+            response: testResponse,
+            message: `Successfully connected to ${testConfig.provider.toUpperCase()} LLM API!`
+        });
+    } else {
+        return res.status(500).json({
+            success: false,
+            message: `Failed to connect to ${testConfig.provider.toUpperCase()}. Please check your API key, model name, or network connectivity.`
+        });
     }
 });
 
 // GET /api/v1/ai/chatflows
 router.get('/chatflows', (req, res) => {
     res.json([
-        { id: DEFAULT_CHATFLOW_ID || 'default-chatflow', name: 'Co-Pilot Assistant' }
+        { id: DEFAULT_CHATFLOW_ID, name: 'Co-Pilot Assistant' }
     ]);
 });
 
