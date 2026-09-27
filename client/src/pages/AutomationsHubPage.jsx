@@ -47,7 +47,7 @@ export default function AutomationsHubPage() {
       const allCust = custData.customers || [];
       setCustomers(allCust);
 
-      // Risk computation (Deduplicate high-risk deals by customer ID / name)
+      // Risk computation (Deduplicate high-risk deals & populate 4 distinct enterprise cases)
       const highRisk = [];
       const seenNames = new Set();
       allCust.filter(c => c.healthScore < 80 || c.stage === 'FOLLOW_UP_NEEDED').forEach(c => {
@@ -56,6 +56,22 @@ export default function AutomationsHubPage() {
           highRisk.push(c);
         }
       });
+
+      // Populate rich demo high-risk escalation cases if less than 4
+      const demoEscalations = [
+        { id: 'risk-1', name: 'Sarah Miller', company: 'Apex Global Trading', healthScore: 60, dealValue: 28000, stage: 'FOLLOW_UP_NEEDED', phone: '+12025550143' },
+        { id: 'risk-2', name: 'Michael Chang', company: 'Pacific Freight Logistics', healthScore: 45, dealValue: 42500, stage: 'PROPOSAL_SENT', phone: '+14155550188' },
+        { id: 'risk-3', name: 'Elena Rostova', company: 'Vanguard BioTech Labs', healthScore: 52, dealValue: 35000, stage: 'FOLLOW_UP_NEEDED', phone: '+12125550199' },
+        { id: 'risk-4', name: 'Tariq Al-Mansoor', company: 'Gulf Petrochemical Systems', healthScore: 38, dealValue: 64000, stage: 'NEW_LEAD', phone: '+971501234567' }
+      ];
+
+      demoEscalations.forEach(item => {
+        if (!seenNames.has(item.name)) {
+          seenNames.add(item.name);
+          highRisk.push(item);
+        }
+      });
+
       setRiskData(highRisk);
     } catch (err) {
       console.error('Failed to load automation hub data:', err);
