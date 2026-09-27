@@ -15,6 +15,11 @@ const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const CampusPage = lazy(() => import('./pages/CampusPage'));
 const DocsPage = lazy(() => import('./pages/DocsPage'));
 const DocsViewer = lazy(() => import('./pages/DocsViewer'));
+const SmartFollowPage = lazy(() => import('./pages/SmartFollowPage'));
+const ProjectsPage = lazy(() => import('./pages/ProjectsPage'));
+const UsersPage = lazy(() => import('./pages/UsersPage'));
+const BrandingHubPage = lazy(() => import('./pages/BrandingHubPage'));
+const AutomationsHubPage = lazy(() => import('./pages/AutomationsHubPage'));
 
 // Branded loading fallback with MicroMind logo + golden spinner
 const LoadingFallback = () => (
@@ -104,6 +109,11 @@ function App() {
                         <Route path="/analytics/dashboards" element={<DashboardsPage />} />
                         <Route path="/report-bot" element={<ReportBotPage />} />
                         <Route path="/reports" element={<ReportsPage />} />
+                        <Route path="/smart-follow" element={<SmartFollowPage />} />
+                        <Route path="/projects" element={<ProjectsPage />} />
+                        <Route path="/users" element={<UsersPage />} />
+                        <Route path="/branding-hub" element={<BrandingHubPage />} />
+                        <Route path="/automations-hub" element={<AutomationsHubPage />} />
                         <Route path="/settings" element={<SettingsPage />} />
                         <Route path="/campus" element={<CampusPage />} />
                         <Route path="/docs" element={<DocsPage />} />

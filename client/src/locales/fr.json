@@ -45,9 +45,12 @@
         "quickActions": {
             "title": "Actions rapides",
             "viewDashboards": "Voir les tableaux de bord",
+            "uploadDocument": "Téléverser un document",
+            "generateReport": "Générer un rapport",
             "newProject": "Nouveau projet",
             "viewTasks": "Voir les tâches",
-            "askCopilot": "Demander au Co-Pilote"
+            "askCopilot": "Demander au Co-Pilote",
+            "smartFollow": "SmartFollow AI"
         }
     },
     "projects": {

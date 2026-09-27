@@ -1,267 +1,179 @@
-# MicroMind Base SAAS Template
+# WhatsApp Pro CRM & SmartFollow AI
 
-> **Build a full SAAS MicroApp in under 10 minutes** with AI-assisted deployment.
+> **Agentic AI Sales Automation & Omnichannel Lead Management Platform**
 
-A modern, full-stack SAAS application template built with **React**, **Node.js**, **PostgreSQL**, and **Prisma**. Features the **Executive Gold** design system, V4 UI SDK, AI Co-Pilots via **MicroMind Core**, multi-tenant SAAS architecture, and comprehensive multi-language support across 5 locales.
-
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![React](https://img.shields.io/badge/React-18.3-61DAFB?logo=react&logoColor=white)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org)
-[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://react.dev)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14%2B-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Express](https://img.shields.io/badge/Express-4.18-000000?logo=express&logoColor=white)](https://expressjs.com)
+[![Prisma](https://img.shields.io/badge/Prisma-5.7-2D3748?logo=prisma&logoColor=white)](https://www.prisma.io)
+[![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org)
+[![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)]()
+[![E2E Tests](https://img.shields.io/badge/E2E_Tests-11%2F11_Passed-brightgreen.svg)]()
+
+**WhatsApp Pro CRM (SmartFollow AI)** is an enterprise Agentic AI CRM and Sales Automation platform built to unify multi-channel customer conversations, automate follow-up workflows, analyze customer buying intent signals, and empower sales teams with real-time AI assistance.
 
 ---
 
-## ⚡ What You Get
+## 🌟 Core Features
 
 | Feature | Description |
-|---------|-------------|
-| 🎨 **Executive Gold Design** | Dark/light theme, V4 SDK with 16 premium components, glassmorphism, micro-animations |
-| 🤖 **AI Co-Pilots** | Multi-agent chat with MicroMind Core, Report Bot, SQL dashboards |
-| 🏢 **SAAS Architecture** | Multi-tenancy, subscriptions, quotas, team management, role-based access |
-| 🌍 **5 Languages** | English, Arabic (RTL), French, German, Swahili — add more in minutes |
-| 📁 **Document Management** | AWS S3 integration, file upload/download, media preview, tag-based search |
-| 📊 **Analytics Engine** | SQL Dashboard Builder, AI-powered reports, chart exports (PNG/CSV) |
-| 🔐 **Auth & Security** | JWT auth, 4 roles (Admin/Manager/User/Viewer), protected routes, session management |
-| 📚 **Built-in Docs Hub** | 18 documentation files accessible at `/docs` inside your app |
-| 🚀 **Go-to-Market Tools** | AI prompt guides for websites, marketing materials, and sales flyers |
+|---|---|
+| 💬 **WhatsApp Pro & Omnichannel Inbox** | 1-click WhatsApp web dispatch (`https://wa.me/...`), unified multi-channel message timeline (WhatsApp, Email, Calls, Live Chat), and AI Knowledge auto-response. |
+| 🤖 **SmartFollow AI Drafts** | Generate personalized follow-up messages tailored to client stage & deal context with 1-click prompt chips (`15% Discount`, `Post-Meeting`) and copy feedback. |
+| 🎯 **Buying Signals & Intent Analysis** | Real-time lead intent detection badges (`🎯 High Intent 94%`, `💰 Budget Approved 85%`, `⚡ Engaged 72%`) in the pipeline directory. |
+| ⚡ **AI Workflows & Automation Suite** | 14-day automated lead drip sequences, AI meeting transcript summarizer with objection extraction, and high-churn-risk manager escalation bot. |
+| 🎨 **White-Label & Knowledge Hub** | Live custom branding (accent colors, portal title, logo) plus business knowledge rules configuration (products, pricing, policies, FAQs). |
+| 🇸🇦 **Full Bilingual & RTL Support** | Complete English and Arabic SaaS localization with dynamic `dir="rtl"` / `dir="ltr"` direction switching. |
+| 🔒 **RBAC & Security Hardening** | 4-tier role separation (`ADMIN`, `MANAGER`, `USER`, `VIEWER`) enforced with strict API middleware role guards. |
+| 📱 **Responsive Mobile Drawer** | Hamburger menu toggle, mobile top header, glassmorphism theme switcher, and backdrop overlay. |
+| 🧪 **Built-in E2E Automation Tests** | Integrated API automated test runner (`npm run test:automation`) with 100% pass rate. |
 
 ---
 
 ## 🚀 Quick Start
 
-> **New to MicroMind?** See **[QUICK_START.md](./QUICK_START.md)** for the full AI-assisted 10-prompt deployment guide.
-
-### Prerequisites
+### 1. Prerequisites
 
 - **Node.js** 18+ and npm
-- **PostgreSQL** 14+
-- **An AI-enabled IDE** — Google Antigravity (recommended), Cursor, or VS Code + Copilot
-- **MicroMind Core keys** — Get yours at [yourapp.aimicromind.com](https://yourapp.aimicromind.com)
+- **Git**
 
-### Setup in 5 Steps
+### 2. Installation & Setup
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/aimicromind/base-template.git
-cd MicroMind-Base-Template
+# Clone the repository
+git clone https://github.com/AbdoLailah586/whatsapp-pro-crm.git
+cd whatsapp-pro-crm
 
-# 2. Install dependencies
-cd client && npm install
-cd ../server && npm install
+# Install client dependencies
+cd client
+npm install
 
-# 3. Configure environment
-cp .env.example .env
-# Edit .env with your database URL, AI keys, and S3 credentials
+# Install server dependencies
+cd ../server
+npm install
+```
 
-# 4. Initialize database
-npx prisma migrate dev --name init
+### 3. Initialize Database & Seed Demo Data
+
+```bash
+cd server
 npx prisma generate
+npx prisma db push
 npm run prisma:seed
-
-# 5. Start development servers
-npm run dev                # Backend on port 3000
-cd ../client && npm run dev  # Frontend on port 5173
 ```
 
-**Open** <http://localhost:5173> and login with `admin@micromind.com` / `admin123`
+### 4. Run Development Servers
 
-> ⚠️ **Change default credentials in production!**
+```bash
+# Start backend API server (Port 3000)
+cd server
+npm start
+
+# In a new terminal, start frontend Vite client (Port 5173)
+cd client
+npm run dev
+```
+
+Open **http://localhost:5173** in your browser.
 
 ---
 
-## 📁 Project Structure
+## 🔑 Demo Credentials
+
+| Role | Email | Password | Access Level |
+|---|---|---|---|
+| 👑 **Administrator** | `admin@micromind.com` | `admin123` | Full administrative control, users, branding, pipeline. |
+| 💼 **Sales Representative** | `user@acme.com` | `user123` | Pipeline management, SmartFollow AI, lead follow-ups. |
+
+---
+
+## 🧪 Running Automated E2E Tests
+
+The project includes an automated end-to-end integration test suite verifying authentication, lead CRUD, AI message generation, task completion, call summarization, drip sequences, and RBAC security:
+
+```bash
+cd server
+npm run test:automation
+```
+
+**Expected Output:**
+```text
+====================================================
+🧪 MicroMind SmartFollow AI — E2E Automation Test Suite
+====================================================
+
+✅ [PASS] API Health Check Endpoint (/api/health)
+✅ [PASS] Admin Authentication Login (/api/auth/login)
+✅ [PASS] Sales Representative Authentication Login (/api/auth/login)
+✅ [PASS] SmartFollow Lead Creation (/api/customers)
+✅ [PASS] SmartFollow Pipeline Directory & Tasks Retrieval
+✅ [PASS] SmartFollow AI Message Generation (/api/customers/:id/ai-suggest)
+✅ [PASS] Follow-up Task Completion (/api/customers/followups/tasks/:taskId)
+✅ [PASS] AI Meeting Notes Summarizer (/api/automations/summarize-call)
+✅ [PASS] Automated Drip Sequences Retrieval (/api/automations/sequences)
+✅ [PASS] RBAC Security Check — Sales Rep Cannot Patch Branding
+✅ [PASS] Customer Lead Deletion (/api/customers/:id)
+
+====================================================
+📊 Automation Test Execution Summary:
+   Passed: 11
+   Failed: 0
+   Total:  11
+====================================================
+```
+
+---
+
+## 🏗️ Production Build
+
+To verify production bundle build:
+
+```bash
+cd client
+npm run build
+```
+
+Output assets will be generated in `client/dist`.
+
+---
+
+## 📂 Project Structure
 
 ```
-MicroMind-Base-Template/
-├── client/                    # React frontend
+whatsapp-pro-crm/
+├── client/                     # React + Vite Frontend
 │   ├── src/
-│   │   ├── sdk/              # V4 UI Component Library (16 components)
-│   │   ├── components/       # App components
-│   │   ├── pages/            # Page components
-│   │   ├── services/         # API clients
-│   │   └── locales/          # i18n translations (5 languages)
-│   └── public/
-│       └── docs/             # 18 documentation markdown files
+│   │   ├── components/        # App layout, Sidebar, AIAgentChat, LanguageSwitcher
+│   │   ├── locales/           # i18n translation files (en.json, ar.json)
+│   │   ├── pages/             # SmartFollow, Automations, Branding, Users, Projects
+│   │   ├── sdk/               # Executive Gold UI component library
+│   │   └── services/          # Axios API service layers
+│   └── package.json
 │
-├── server/                    # Node.js backend
-│   ├── src/
-│   │   ├── routes/           # API routes
-│   │   ├── controllers/      # Business logic
-│   │   └── middleware/       # Auth, validation, error handling
+├── server/                     # Node.js + Express + Prisma Backend
 │   ├── prisma/
-│   │   ├── schema.prisma     # Database schema
-│   │   └── seed.js           # Demo data
-│   └── .env.example          # Environment template
+│   │   ├── schema.prisma      # SQLite Prisma database schema
+│   │   └── seed.js            # Demo data seeder
+│   ├── src/
+│   │   ├── routes/            # Auth, Customers, Automations, Branding, Users, Projects
+│   │   └── index.js           # Express app server entry point
+│   ├── test-automation.js     # E2E Automated Integration Test Suite
+│   └── package.json
 │
-├── .ai/                       # AI constitution (coding standards)
-├── QUICK_START.md             # 10-prompt deployment guide
-├── CONTRIBUTING.md            # How to contribute
-├── CHANGELOG.md               # Release history
-├── LICENSE                    # Apache 2.0
-├── NOTICE                     # Attribution
-└── README.md                  # This file
+└── DEMO_PITCH_SCRIPT.md        # 3-Minute Live Demo Pitch Script
 ```
 
 ---
 
-## 🗄️ Database Schema
+## 👨‍💻 Author & Acknowledgements
 
-**Core Models:**
+Built with ❤️ by **Abdul Lailah** for the **MicroMind Agentic AI** Program.
 
-| Model | Purpose |
-|-------|---------|
-| User | Authentication & user management with roles |
-| Session | JWT session tracking |
-| Dashboard | SQL analytics dashboards |
-| Report | AI-generated reports |
-| Document | File management with S3 |
-| ChatHistory | AI conversation logs |
-
-See `server/prisma/schema.prisma` for the full schema.
+Special thanks to Eng. **Ahmed Abd El-Ghaffar** for continuous mentorship and guidance, and the **AI MicroMind** team.
 
 ---
 
-## 🎨 UI Component Library (V4 SDK)
+## 📜 License
 
-**16 premium components** with Executive Gold theming:
-
-```
-MMButton, MMCard, MMInput, MMSelect, MMModal, MMTable,
-MMTabs, MMBadge, MMSwitch, MMCheckbox, MMRadio, MMSpinner,
-MMTooltip, MMAlert, MMDrawer, MMTextarea, MMPagination
-```
-
-**Modules:** MMMap, MMChart, MMFileImport
-
-**Usage:**
-
-```jsx
-import { MMButton, MMCard } from '@sdk';
-
-<MMCard title="My Feature">
-  <MMButton variant="primary">Get Started</MMButton>
-</MMCard>
-```
-
-See **[V4_SDK_REFERENCE.md](./V4_SDK_REFERENCE.md)** for full API documentation.
-
----
-
-## 🌐 Multi-Language Support
-
-| Language | Code | Direction |
-|----------|------|-----------|
-| English | `en` | LTR (default) |
-| Arabic | `ar` | RTL |
-| French | `fr` | LTR |
-| German | `de` | LTR |
-| Swahili | `sw` | LTR |
-
-**Add a new language:**
-
-1. Create `client/src/locales/{lang}.json`
-2. Copy keys from `en.json` and translate
-3. Register in `client/src/i18n.js`
-
----
-
-## 📖 Documentation
-
-All documentation is available at **`/docs`** inside your running app, or as markdown files:
-
-### Getting Started
-
-- **[QUICK_START.md](./QUICK_START.md)** — AI-assisted 10-prompt deployment guide
-- **[SETUP.md](./SETUP.md)** — Detailed setup instructions
-- **[DEPLOYMENT_INSTRUCTIONS.md](./DEPLOYMENT_INSTRUCTIONS.md)** — Step-by-step environment setup
-- **[EXTENDING_YOUR_APP.md](./client/public/docs/EXTENDING_YOUR_APP.md)** — Build pages with AI prompt sequences
-
-### Architecture & SDKs
-
-- **[V4_SDK_REFERENCE.md](./V4_SDK_REFERENCE.md)** — 16 frontend components
-- **[BACKEND_SDK_AGENTS_GUIDE.md](./BACKEND_SDK_AGENTS_GUIDE.md)** — Server-side SDK
-- **[AI_AGENTS_GUIDE.md](./AI_AGENTS_GUIDE.md)** — MicroMind Core AI integration
-- **[SAAS.md](./SAAS.md)** — Multi-tenancy, subscriptions, quotas
-- **[BRANDING.md](./BRANDING.md)** — Customize colors, logos, typography
-
-### Deployment & Go-to-Market
-
-- **[DEPLOYMENT.md](./DEPLOYMENT.md)** — Production deployment (Vercel, AWS, DO, VPS)
-- **[WEBSITE_AND_MARKETING.md](./client/public/docs/WEBSITE_AND_MARKETING.md)** — Build marketing sites with AI
-- **[SALES_FLYERS.md](./client/public/docs/SALES_FLYERS.md)** — Create print-ready sales materials
-
-### Example Apps
-
-- Credit Control, Order Cycle, OTax, TeamSync, Oracle ERP Integration
-
----
-
-## 🔧 Tech Stack
-
-| Layer | Technologies |
-|-------|-------------|
-| **Frontend** | React 18, Vite, React Router, i18next, Axios, Lucide Icons |
-| **Backend** | Node.js, Express, Prisma ORM, JWT, bcrypt, Socket.IO |
-| **Database** | PostgreSQL 14+ |
-| **AI Engine** | MicroMind Core (Flowise-based), multi-agent orchestration |
-| **Storage** | AWS S3 (optional) |
-| **Design** | Executive Gold theme, V4 SDK (16 components) |
-
----
-
-## 🛠️ Scripts
-
-### Client
-
-```bash
-npm run dev          # Start dev server (Vite)
-npm run build        # Build for production
-npm run preview      # Preview production build
-```
-
-### Server
-
-```bash
-npm run dev               # Start with nodemon
-npm start                 # Production server
-npm run prisma:generate   # Generate Prisma client
-npm run prisma:migrate    # Run migrations
-npm run prisma:seed       # Seed demo data
-npm run prisma:studio     # Open Prisma Studio
-```
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please see **[CONTRIBUTING.md](./CONTRIBUTING.md)** for guidelines.
-
-**Quick overview:**
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 💬 Community
-
-- 💬 **[Discord](https://discord.gg/aimicromind)** — Chat with the team and other developers
-- 💡 **[GitHub Discussions](https://github.com/aimicromind/base-template/discussions)** — Ask questions and share ideas
-- 🐛 **[GitHub Issues](https://github.com/aimicromind/base-template/issues)** — Report bugs and request features
-- 🌐 **[yourapp.aimicromind.com](https://yourapp.aimicromind.com)** — Get your MicroMind keys
-
----
-
-## 📝 License
-
-This project is licensed under the **Apache License 2.0** — see the [LICENSE](./LICENSE) file for details.
-
-Copyright 2026 AI MicroMind LLC. See [NOTICE](./NOTICE) for third-party attributions.
-
----
-
-**Happy building! 🚀**
+This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.

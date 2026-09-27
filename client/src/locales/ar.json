@@ -15,7 +15,10 @@
         "projects": "المشاريع",
         "tasks": "المهام",
         "team": "الفريق",
-        "customers": "العملاء"
+        "customers": "العملاء",
+        "aiWorkflows": "مسارات أتمتة الذكاء الاصطناعي",
+        "whiteLabelHub": "مركز الهوية (White-Label)",
+        "searchPlaceholder": "انتقال سريع... (Ctrl+K)"
     },
     "copilots": {
         "title": "المساعدون",
@@ -45,9 +48,12 @@
         "quickActions": {
             "title": "إجراءات سريعة",
             "viewDashboards": "عرض لوحات المعلومات",
+            "uploadDocument": "رفع مستند",
+            "generateReport": "إنشاء تقرير",
             "newProject": "مشروع جديد",
             "viewTasks": "عرض المهام",
-            "askCopilot": "سؤال المساعد"
+            "askCopilot": "سؤال المساعد",
+            "smartFollow": "SmartFollow AI"
         }
     },
     "projects": {
@@ -507,5 +513,39 @@
         "search": "بحث",
         "filter": "تصفية",
         "add": "إضافة"
+    },
+    "settingsPage": {
+        "title": "الإعدادات",
+        "subtitle": "إدارة إعدادات حسابك وتفضيلاتك",
+        "profile": {
+            "title": "معلومات الملف الشخصي",
+            "displayName": "اسم العرض",
+            "email": "البريد الإلكتروني"
+        },
+        "appearance": {
+            "title": "المظهر",
+            "theme": "المظهر",
+            "themeDesc": "اختر نظام الألوان المفضل لديك",
+            "light": "فاتح",
+            "dark": "داكن",
+            "language": "اللغة",
+            "languageDesc": "اختر لغة الواجهة"
+        },
+        "notifications": {
+            "title": "الإشعارات",
+            "push": "إشعارات التطبيق",
+            "pushDesc": "تلقي إشعارات حول التحديثات الهامة"
+        },
+        "security": {
+            "title": "الأمان",
+            "twoFactor": "المصادقة الثنائية",
+            "twoFactorDesc": "إضافة طبقة أمان إضافية لحسابك",
+            "changePassword": "تغيير كلمة المرور"
+        },
+        "buttons": {
+            "cancel": "إلغاء",
+            "save": "حفظ التغييرات"
+        },
+        "savedSuccess": "تم حفظ الإعدادات بنجاح!"
     }
 }

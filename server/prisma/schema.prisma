@@ -1,17 +1,16 @@
-// This is your Prisma schema file for the MicroMind Base SAAS Template
-// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+// White-Label Multi-Tenant AI Automation SaaS Platform - Prisma Schema
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 // ============================================================================
-// MULTI-TENANT SAAS INFRASTRUCTURE
+// MULTI-TENANT SAAS INFRASTRUCTURE & WHITE-LABELING
 // ============================================================================
 
 model Organization {
@@ -19,17 +18,23 @@ model Organization {
   name            String
   slug            String    @unique
   logo            String?
-  settings        Json?
+  brandColor      String?   @default("#E0AA3E")
+  portalTitle     String?   @default("MicroMind Business Suite")
+  settings        String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   
   // Relations
-  members         OrganizationMember[]
-  subscription    Subscription?
-  dashboards      Dashboard[]
-  reports         Report[]
-  documents       Document[]
-  chatHistory     ChatHistory[]
+  members             OrganizationMember[]
+  subscription        Subscription?
+  dashboards          Dashboard[]
+  reports             Report[]
+  documents           Document[]
+  chatHistory         ChatHistory[]
+  customers           Customer[]
+  followUpTasks       FollowUpTask[]
+  projects            Project[]
+  automationSequences AutomationSequence[]
   
   @@index([slug])
   @@map("organizations")
@@ -39,7 +44,7 @@ model OrganizationMember {
   id              String   @id @default(uuid())
   organizationId  String
   userId          String
-  role            OrgRole  @default(MEMBER)
+  role            String   @default("MEMBER")
   createdAt       DateTime @default(now())
   
   // Relations
@@ -53,17 +58,17 @@ model OrganizationMember {
 }
 
 model Subscription {
-  id                    String             @id @default(uuid())
-  organizationId        String             @unique
-  plan                  SubscriptionPlan   @default(FREE)
-  status                SubscriptionStatus @default(ACTIVE)
+  id                    String   @id @default(uuid())
+  organizationId        String   @unique
+  plan                  String   @default("FREE")
+  status                String   @default("ACTIVE")
   currentPeriodStart    DateTime
   currentPeriodEnd      DateTime
-  cancelAtPeriodEnd     Boolean            @default(false)
+  cancelAtPeriodEnd     Boolean  @default(false)
   stripeCustomerId      String?
   stripeSubscriptionId  String?
-  createdAt             DateTime           @default(now())
-  updatedAt             DateTime           @updatedAt
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
   
   // Relations
   organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -74,15 +79,15 @@ model Subscription {
 }
 
 model Invitation {
-  id              String   @id @default(uuid())
+  id              String    @id @default(uuid())
   organizationId  String
   email           String
-  role            OrgRole  @default(MEMBER)
-  token           String   @unique
+  role            String    @default("MEMBER")
+  token           String    @unique
   expiresAt       DateTime
   acceptedAt      DateTime?
   invitedBy       String
-  createdAt       DateTime @default(now())
+  createdAt       DateTime  @default(now())
   
   @@index([email])
   @@index([token])
@@ -99,7 +104,7 @@ model User {
   email                 String    @unique
   passwordHash          String
   displayName           String
-  role                  UserRole  @default(USER)
+  role                  String    @default("USER")
   active                Boolean   @default(true)
   currentOrganizationId String?
   createdAt             DateTime  @default(now())
@@ -143,8 +148,8 @@ model Dashboard {
   userId          String
   title           String
   description     String?
-  sqlQuery        String?  @db.Text
-  chartConfig     Json?
+  sqlQuery        String?
+  chartConfig     String?
   isPublic        Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -165,7 +170,7 @@ model Report {
   userId          String
   title           String
   description     String?
-  content         Json?
+  content         String?
   format          String   @default("PDF")
   s3Path          String?
   createdAt       DateTime @default(now())
@@ -185,18 +190,18 @@ model Report {
 // ============================================================================
 
 model Document {
-  id              String       @id @default(uuid())
+  id              String   @id @default(uuid())
   organizationId  String
   title           String
   description     String?
-  fileType        DocumentType
+  fileType        String   @default("DOCUMENT")
   s3Path          String
   size            Int?
   uploadedBy      String?
-  tags            String[]     @default([])
-  metadata        Json?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  tags            String?  @default("")
+  metadata        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   
   // Relations
   organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -217,9 +222,9 @@ model ChatHistory {
   organizationId  String
   userId          String?
   agentType       String
-  message         String   @db.Text
-  response        String   @db.Text
-  metadata        Json?
+  message         String
+  response        String
+  metadata        String?
   createdAt       DateTime @default(now())
   
   // Relations
@@ -233,43 +238,157 @@ model ChatHistory {
 }
 
 // ============================================================================
-// ENUMS
+// SMARTFOLLOW AI — CUSTOMER FOLLOW-UP & AUTOMATION MODELS
 // ============================================================================
 
-enum UserRole {
-  ADMIN
-  MANAGER
-  USER
-  VIEWER
+model Customer {
+  id              String         @id @default(uuid())
+  organizationId  String
+  name            String
+  company         String?
+  email           String?
+  phone           String?
+  stage           String         @default("NEW_LEAD")
+  healthScore     Int            @default(100)
+  dealValue       Float          @default(0)
+  assignedTo      String?
+  lastContactedAt DateTime?
+  nextFollowUpAt  DateTime?
+  notes           String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  organization    Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  interactions    Interaction[]
+  followUpTasks   FollowUpTask[]
+  callSummaries   CallSummary[]
+
+  @@index([organizationId])
+  @@index([stage])
+  @@index([nextFollowUpAt])
+  @@map("customers")
 }
 
-enum OrgRole {
-  OWNER
-  ADMIN
-  MEMBER
-  VIEWER
+model FollowUpTask {
+  id              String   @id @default(uuid())
+  organizationId  String
+  customerId      String
+  title           String
+  description     String?
+  type            String   @default("CALL")
+  status          String   @default("PENDING")
+  dueDate         DateTime
+  aiSuggestedMsg  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer        Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([dueDate])
+  @@map("follow_up_tasks")
 }
 
-enum SubscriptionPlan {
-  FREE
-  STARTER
-  PRO
-  ENTERPRISE
+model Interaction {
+  id              String   @id @default(uuid())
+  customerId      String
+  channel         String
+  summary         String
+  sentiment       String?
+  createdAt       DateTime @default(now())
+
+  customer        Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  @@map("interactions")
 }
 
-enum SubscriptionStatus {
-  ACTIVE
-  PAST_DUE
-  CANCELED
-  TRIALING
+// ============================================================================
+// PROJECTS MANAGEMENT
+// ============================================================================
+
+model Project {
+  id              String        @id @default(uuid())
+  organizationId  String
+  name            String
+  description     String?
+  status          String        @default("ACTIVE")
+  color           String?       @default("#E0AA3E")
+  progress        Int           @default(0)
+  startDate       DateTime?
+  endDate         DateTime?
+  createdBy       String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tasks           ProjectTask[]
+
+  @@index([organizationId])
+  @@index([status])
+  @@map("projects")
 }
 
-enum DocumentType {
-  PDF
-  IMAGE
-  VIDEO
-  AUDIO
-  SPREADSHEET
-  DOCUMENT
-  OTHER
+model ProjectTask {
+  id              String        @id @default(uuid())
+  projectId       String
+  title           String
+  description     String?
+  status          String        @default("TODO")
+  priority        String        @default("MEDIUM")
+  dueDate         DateTime?
+  assignedTo      String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  project         Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([status])
+  @@map("project_tasks")
+}
+
+// ============================================================================
+// DRIP AUTOMATION SEQUENCES & AI CALL SUMMARIES
+// ============================================================================
+
+model AutomationSequence {
+  id              String         @id @default(uuid())
+  organizationId  String
+  name            String
+  triggerStage    String         @default("NEW_LEAD")
+  active          Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+
+  organization    Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  steps           SequenceStep[]
+
+  @@index([organizationId])
+  @@map("automation_sequences")
+}
+
+model SequenceStep {
+  id              String             @id @default(uuid())
+  sequenceId      String
+  delayDays       Int                @default(1)
+  channel         String             @default("EMAIL") // EMAIL, WHATSAPP, SMS
+  templateSubject String?
+  templateBody    String
+
+  sequence        AutomationSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  @@map("sequence_steps")
+}
+
+model CallSummary {
+  id              String       @id @default(uuid())
+  customerId      String
+  rawNotes        String
+  aiSummary       String
+  objections      String?
+  actionItems     String?
+  sentiment       String?      @default("POSITIVE")
+  createdAt       DateTime     @default(now())
+
+  customer        Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  @@map("call_summaries")
 }

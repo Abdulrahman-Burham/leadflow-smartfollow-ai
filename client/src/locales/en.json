@@ -15,7 +15,10 @@
         "projects": "Projects",
         "tasks": "Tasks",
         "team": "Team",
-        "customers": "Customers"
+        "customers": "Customers",
+        "aiWorkflows": "AI Workflows",
+        "whiteLabelHub": "White-Label Hub",
+        "searchPlaceholder": "Jump to... (Ctrl+K)"
     },
     "copilots": {
         "title": "Co-Pilots",
@@ -45,9 +48,12 @@
         "quickActions": {
             "title": "Quick Actions",
             "viewDashboards": "View Dashboards",
+            "uploadDocument": "Upload Document",
+            "generateReport": "Generate Report",
             "newProject": "New Project",
             "viewTasks": "View Tasks",
-            "askCopilot": "Ask Co-Pilot"
+            "askCopilot": "Ask Co-Pilot",
+            "smartFollow": "SmartFollow AI"
         }
     },
     "projects": {
@@ -508,5 +514,39 @@
         "search": "Search",
         "filter": "Filter",
         "add": "Add"
+    },
+    "settingsPage": {
+        "title": "Settings",
+        "subtitle": "Manage your account settings and preferences",
+        "profile": {
+            "title": "Profile Information",
+            "displayName": "Display Name",
+            "email": "Email Address"
+        },
+        "appearance": {
+            "title": "Appearance",
+            "theme": "Theme",
+            "themeDesc": "Choose your preferred color scheme",
+            "light": "Light",
+            "dark": "Dark",
+            "language": "Language",
+            "languageDesc": "Select your interface language"
+        },
+        "notifications": {
+            "title": "Notifications",
+            "push": "Push Notifications",
+            "pushDesc": "Receive notifications about important updates"
+        },
+        "security": {
+            "title": "Security",
+            "twoFactor": "Two-Factor Authentication",
+            "twoFactorDesc": "Add an extra layer of security to your account",
+            "changePassword": "Change Password"
+        },
+        "buttons": {
+            "cancel": "Cancel",
+            "save": "Save Changes"
+        },
+        "savedSuccess": "Settings saved successfully!"
     }
 }

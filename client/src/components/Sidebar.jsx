@@ -5,11 +5,11 @@ import LanguageSwitcher from './LanguageSwitcher';
 import {
     Home, Users, BarChart2, Bot, FileText, HelpCircle,
     GraduationCap, Settings, LogOut, Sun, Moon, Search,
-    ChevronRight, ChevronDown, BarChart3, FolderOpen
+    ChevronRight, ChevronDown, BarChart3, FolderOpen, Sparkles, Folder, Palette, Zap
 } from 'lucide-react';
 import './Sidebar.css';
 
-const Sidebar = () => {
+const Sidebar = ({ onNavigate }) => {
     const { t } = useTranslation();
     const navigate = useNavigate();
     const location = useLocation();
@@ -80,6 +80,10 @@ const Sidebar = () => {
     // All searchable items (flattened for search)
     const allSearchableItems = [
         { id: 'home', label: t('nav.dashboard', 'Dashboard'), path: '/', icon: Home, keywords: ['home', 'dashboard'] },
+        { id: 'smart-follow', label: 'SmartFollow AI', path: '/smart-follow', icon: Sparkles, keywords: ['smart', 'follow', 'crm', 'leads', 'automation'] },
+        { id: 'projects', label: t('nav.projects', 'Projects'), path: '/projects', icon: Folder, keywords: ['projects', 'tasks', 'board'] },
+        { id: 'users', label: t('nav.team', 'Team & Users'), path: '/users', icon: Users, keywords: ['team', 'users', 'members'] },
+        { id: 'automations-hub', label: 'AI Workflows', path: '/automations-hub', icon: Zap, keywords: ['workflows', 'automation'] },
         { id: 'copilots', label: t('copilots.title', 'Co-Pilots'), path: '/copilots', icon: Users, keywords: ['copilots', 'ai', 'assistants', 'chat'] },
         { id: 'documents', label: t('nav.documents', 'Documents'), path: '/documents', icon: FolderOpen, keywords: ['documents', 'files', 'library', 'archive'] },
         { id: 'dashboards', label: t('nav.dashboards', 'Dashboards'), path: '/analytics/dashboards', icon: BarChart3, keywords: ['dashboards', 'analytics', 'charts', 'sql'] },
@@ -102,6 +106,7 @@ const Sidebar = () => {
         navigate(path);
         setSearchQuery('');
         setIsSearchOpen(false);
+        if (onNavigate) onNavigate();
     };
 
     return (
@@ -125,7 +130,7 @@ const Sidebar = () => {
                         id="sidebar-search"
                         type="text"
                         className="sidebar-search-input"
-                        placeholder="Jump to... (Ctrl+K)"
+                        placeholder={t('nav.searchPlaceholder', 'Jump to... (Ctrl+K)')}
                         value={searchQuery}
                         onChange={(e) => {
                             setSearchQuery(e.target.value);
@@ -163,9 +168,46 @@ const Sidebar = () => {
                     <span className="nav-label">{t('nav.dashboard', 'Dashboard')}</span>
                 </button>
 
+                {/* SmartFollow AI */}
+                <button
+                    className={`nav-item ${isActive('/smart-follow') ? 'active' : ''}`}
+                    onClick={() => handleNavigation('/smart-follow')}
+                    style={{ background: isActive('/smart-follow') ? 'rgba(224, 170, 62, 0.15)' : undefined, color: isActive('/smart-follow') ? '#E0AA3E' : undefined }}
+                >
+                    <Sparkles size={18} className="nav-icon" style={{ color: '#E0AA3E' }} />
+                    <span className="nav-label" style={{ fontWeight: '600' }}>SmartFollow AI</span>
+                </button>
+
+                {/* Projects */}
+                <button
+                    className={`nav-item ${isActive('/projects') ? 'active' : ''}`}
+                    onClick={() => handleNavigation('/projects')}
+                >
+                    <Folder size={18} className="nav-icon" />
+                    <span className="nav-label">{t('nav.projects', 'Projects')}</span>
+                </button>
+
+                {/* Team & Users */}
+                <button
+                    className={`nav-item ${isActive('/users') ? 'active' : ''}`}
+                    onClick={() => handleNavigation('/users')}
+                >
+                    <Users size={18} className="nav-icon" />
+                    <span className="nav-label">{t('nav.team', 'Team & Users')}</span>
+                </button>
+
                 {/* AUTOMATION SECTION */}
                 <div className="nav-section">
                     <div className="section-label">{t('nav.automation', 'Automation')}</div>
+
+                    {/* AI Workflows Suite */}
+                    <button
+                        className={`nav-item ${isActive('/automations-hub') ? 'active' : ''}`}
+                        onClick={() => handleNavigation('/automations-hub')}
+                    >
+                        <Zap size={18} className="nav-icon" />
+                        <span className="nav-label">{t('nav.aiWorkflows', 'AI Workflows')}</span>
+                    </button>
 
                     {/* My Co-Pilots */}
                     <button
@@ -183,6 +225,15 @@ const Sidebar = () => {
                     >
                         <FolderOpen size={18} className="nav-icon" />
                         <span className="nav-label">{t('nav.documents', 'Documents')}</span>
+                    </button>
+
+                    {/* White-Label Branding Hub */}
+                    <button
+                        className={`nav-item ${isActive('/branding-hub') ? 'active' : ''}`}
+                        onClick={() => handleNavigation('/branding-hub')}
+                    >
+                        <Palette size={18} className="nav-icon" />
+                        <span className="nav-label">{t('nav.whiteLabelHub', 'White-Label Hub')}</span>
                     </button>
                 </div>
 

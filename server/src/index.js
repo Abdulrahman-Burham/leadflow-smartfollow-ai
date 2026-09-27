@@ -37,6 +37,16 @@ const dashboardRoutes = require('./routes/dashboards');
 app.use('/api/dashboards', dashboardRoutes);
 const aiRoutes = require('./routes/ai');
 app.use('/api/v1/ai', aiRoutes);
+const customerRoutes = require('./routes/customers');
+app.use('/api/customers', customerRoutes);
+const projectRoutes = require('./routes/projects');
+app.use('/api/projects', projectRoutes);
+const userRoutes = require('./routes/users');
+app.use('/api/users', userRoutes);
+const brandingRoutes = require('./routes/branding');
+app.use('/api/branding', brandingRoutes);
+const automationRoutes = require('./routes/automations');
+app.use('/api/automations', automationRoutes);
 
 // Placeholder routes
 app.get('/api', (req, res) => {

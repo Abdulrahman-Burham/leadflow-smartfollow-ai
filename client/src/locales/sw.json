@@ -45,9 +45,12 @@
         "quickActions": {
             "title": "Vitendo vya Haraka",
             "viewDashboards": "Tazama Dashibodi",
+            "uploadDocument": "Pakia Hati",
+            "generateReport": "Tengeneza Ripoti",
             "newProject": "Mradi Mpya",
             "viewTasks": "Tazama Kazi",
-            "askCopilot": "Uliza Msaidizi"
+            "askCopilot": "Uliza Msaidizi",
+            "smartFollow": "SmartFollow AI"
         }
     },
     "projects": {

@@ -45,9 +45,12 @@
         "quickActions": {
             "title": "Schnellaktionen",
             "viewDashboards": "Dashboards anzeigen",
+            "uploadDocument": "Dokument hochladen",
+            "generateReport": "Bericht erstellen",
             "newProject": "Neues Projekt",
             "viewTasks": "Aufgaben anzeigen",
-            "askCopilot": "Co-Piloten fragen"
+            "askCopilot": "Co-Piloten fragen",
+            "smartFollow": "SmartFollow AI"
         }
     },
     "projects": {

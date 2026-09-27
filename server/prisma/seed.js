@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log('🌱 Starting multi-tenant SAAS database seed...');
+    console.log('🌱 Starting SmartFollow AI & Projects database seed...');
 
     // ============================================================================
     // CREATE DEMO ORGANIZATIONS
@@ -18,24 +18,24 @@ async function main() {
         create: {
             name: 'Acme Corporation',
             slug: 'acme-corp',
-            settings: {
+            settings: JSON.stringify({
                 timezone: 'America/New_York',
                 dateFormat: 'MM/DD/YYYY'
-            }
+            })
         }
     });
     console.log('✅ Created organization:', org1.name);
 
     const org2 = await prisma.organization.upsert({
-        where: { slug: 'micro mind-labs' },
+        where: { slug: 'micromind-labs' },
         update: {},
         create: {
             name: 'MicroMind Labs',
             slug: 'micromind-labs',
-            settings: {
+            settings: JSON.stringify({
                 timezone: 'UTC',
                 dateFormat: 'YYYY-MM-DD'
-            }
+            })
         }
     });
     console.log('✅ Created organization:', org2.name);
@@ -48,10 +48,10 @@ async function main() {
 
     const adminPassword = await bcrypt.hash('admin123', 10);
     const admin = await prisma.user.upsert({
-        where: { email: 'admin@acme.com' },
+        where: { email: 'admin@micromind.com' },
         update: {},
         create: {
-            email: 'admin@acme.com',
+            email: 'admin@micromind.com',
             passwordHash: adminPassword,
             displayName: 'Admin User',
             role: 'ADMIN',
@@ -59,7 +59,7 @@ async function main() {
             currentOrganizationId: org1.id
         }
     });
-    console.log('✅ Created admin user:', admin.email);
+    console.log('✅ Created main admin user:', admin.email);
 
     const userPassword = await bcrypt.hash('user123', 10);
     const user = await prisma.user.upsert({
@@ -68,7 +68,7 @@ async function main() {
         create: {
             email: 'user@acme.com',
             passwordHash: userPassword,
-            displayName: 'Demo User',
+            displayName: 'Sales Representative',
             role: 'USER',
             active: true,
             currentOrganizationId: org1.id
@@ -76,69 +76,24 @@ async function main() {
     });
     console.log('✅ Created demo user:', user.email);
 
-    const user2Password = await bcrypt.hash('user123', 10);
-    const user2 = await prisma.user.upsert({
-        where: { email: 'jane@micromind.com' },
-        update: {},
-        create: {
-            email: 'jane@micromind.com',
-            passwordHash: user2Password,
-            displayName: 'Jane Smith',
-            role: 'USER',
-            active: true,
-            currentOrganizationId: org2.id
-        }
-    });
-    console.log('✅ Created user:', user2.email);
-
     // ============================================================================
-    // CREATE ORGANIZATION MEMBERSHIPS
+    // CREATE ORGANIZATION MEMBERSHIPS & SUBSCRIPTIONS
     // ============================================================================
-
-    console.log('\n🔗 Creating organization memberships...');
 
     await prisma.organizationMember.upsert({
         where: { organizationId_userId: { organizationId: org1.id, userId: admin.id } },
         update: {},
-        create: {
-            organizationId: org1.id,
-            userId: admin.id,
-            role: 'OWNER'
-        }
+        create: { organizationId: org1.id, userId: admin.id, role: 'OWNER' }
     });
-    console.log('✅ Added admin as OWNER of', org1.name);
 
     await prisma.organizationMember.upsert({
         where: { organizationId_userId: { organizationId: org1.id, userId: user.id } },
         update: {},
-        create: {
-            organizationId: org1.id,
-            userId: user.id,
-            role: 'MEMBER'
-        }
+        create: { organizationId: org1.id, userId: user.id, role: 'MEMBER' }
     });
-    console.log('✅ Added user as MEMBER of', org1.name);
-
-    await prisma.organizationMember.upsert({
-        where: { organizationId_userId: { organizationId: org2.id, userId: user2.id } },
-        update: {},
-        create: {
-            organizationId: org2.id,
-            userId: user2.id,
-            role: 'OWNER'
-        }
-    });
-    console.log('✅ Added Jane as OWNER of', org2.name);
-
-    // ============================================================================
-    // CREATE SUBSCRIPTIONS
-    // ============================================================================
-
-    console.log('\n💳 Creating subscriptions...');
 
     const now = new Date();
-    const periodEnd = new Date();
-    periodEnd.setMonth(periodEnd.getMonth() + 1);
+    const nextYear = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
 
     await prisma.subscription.upsert({
         where: { organizationId: org1.id },
@@ -148,88 +103,106 @@ async function main() {
             plan: 'PRO',
             status: 'ACTIVE',
             currentPeriodStart: now,
-            currentPeriodEnd: periodEnd
+            currentPeriodEnd: nextYear
         }
     });
-    console.log('✅ Created PRO subscription for', org1.name);
 
-    await prisma.subscription.upsert({
-        where: { organizationId: org2.id },
-        update: {},
-        create: {
-            organizationId: org2.id,
-            plan: 'FREE',
+    // ============================================================================
+    // CREATE DEMO PROJECTS
+    // ============================================================================
+
+    console.log('\n🚀 Creating demo projects...');
+
+    const proj1 = await prisma.project.create({
+        data: {
+            organizationId: org1.id,
+            name: 'Website Redesign & Rebranding',
+            description: 'Overhaul corporate website with Executive Gold V4 design system.',
             status: 'ACTIVE',
-            currentPeriodStart: now,
-            currentPeriodEnd: periodEnd
+            color: '#E0AA3E',
+            progress: 65,
+            startDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+            endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+            createdBy: admin.id
         }
     });
-    console.log('✅ Created FREE subscription for', org2.name);
 
-    // ============================================================================
-    // CREATE SAMPLE DATA
-    // ============================================================================
-
-    console.log('\n📊 Creating sample data...');
-
-    // Dashboard for Org 1
-    await prisma.dashboard.create({
+    const proj2 = await prisma.project.create({
         data: {
             organizationId: org1.id,
-            userId: admin.id,
-            title: 'System Overview',
-            description: 'Main dashboard for Acme Corp',
-            sqlQuery: 'SELECT COUNT(*) as total_users FROM users;',
-            chartConfig: {
-                type: 'bar',
-                xAxis: 'category',
-                yAxis: 'value'
-            },
-            isPublic: true
+            name: 'SmartFollow CRM Integration',
+            description: 'Automate sales follow-up workflows and WhatsApp messaging.',
+            status: 'ACTIVE',
+            color: '#10B981',
+            progress: 90,
+            startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+            endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+            createdBy: admin.id
         }
     });
-    console.log('✅ Created dashboard for', org1.name);
 
-    // Document for Org 1
-    await prisma.document.create({
+    console.log('✅ Created demo projects:', proj1.name, ',', proj2.name);
+
+    // ============================================================================
+    // CREATE SMARTFOLLOW AI CUSTOMERS & FOLLOW-UP TASKS
+    // ============================================================================
+
+    console.log('\n🎯 Creating SmartFollow AI customers & tasks...');
+
+    const customer1 = await prisma.customer.create({
         data: {
             organizationId: org1.id,
-            title: 'Getting Started Guide',
-            description: 'Introduction to the platform',
-            fileType: 'PDF',
-            s3Path: '/demo/getting-started.pdf',
-            size: 1024000,
-            uploadedBy: admin.id,
-            tags: ['guide', 'tutorial'],
-            metadata: { category: 'documentation' }
+            name: 'Ahmed Hassan',
+            company: 'Tech Solutions LLC',
+            email: 'ahmed@techsolutions.com',
+            phone: '+20 100 123 4567',
+            stage: 'PROPOSAL_SENT',
+            healthScore: 85,
+            dealValue: 15000,
+            assignedTo: admin.id,
+            lastContactedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+            nextFollowUpAt: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+            notes: 'Interested in Enterprise Tier. Waiting for final budget signoff from CEO.'
         }
     });
-    console.log('✅ Created document for', org1.name);
 
-    // Dashboard for Org 2
-    await prisma.dashboard.create({
+    const customer2 = await prisma.customer.create({
         data: {
-            organizationId: org2.id,
-            userId: user2.id,
-            title: 'Team Analytics',
-            description: 'Analytics for MicroMind Labs',
-            sqlQuery: 'SELECT * FROM dashboards LIMIT 10;',
-            isPublic: false
+            organizationId: org1.id,
+            name: 'Sarah Miller',
+            company: 'Apex Global Trading',
+            email: 'sarah.m@apexglobal.com',
+            phone: '+1 555 019 2834',
+            stage: 'FOLLOW_UP_NEEDED',
+            healthScore: 60,
+            dealValue: 28000,
+            assignedTo: user.id,
+            lastContactedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+            nextFollowUpAt: new Date(),
+            notes: 'Requested custom integration details. High priority deal.'
         }
     });
-    console.log('✅ Created dashboard for', org2.name);
+
+    // Follow-up tasks
+    await prisma.followUpTask.create({
+        data: {
+            organizationId: org1.id,
+            customerId: customer1.id,
+            title: 'Send Revised Commercial Proposal',
+            description: 'Send updated pricing breakdown including 10% annual billing discount.',
+            type: 'EMAIL',
+            status: 'PENDING',
+            dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+            aiSuggestedMsg: 'Hi Ahmed, following up on our proposal sent on Tuesday. I have attached the updated annual discount structure we discussed...'
+        }
+    });
 
     console.log('');
-    console.log('🎉 Multi-tenant SAAS database seeded successfully!');
+    console.log('🎉 SmartFollow AI & Projects database seeded successfully!');
     console.log('');
-    console.log('📝 Demo Credentials:');
-    console.log('');
-    console.log('   Organization 1: Acme Corporation (PRO plan)');
-    console.log('   - Owner:   admin@acme.com / admin123');
-    console.log('   - Member:  user@acme.com / user123');
-    console.log('');
-    console.log('   Organization 2: MicroMind Labs (FREE plan)');
-    console.log('   - Owner:   jane@micromind.com / user123');
+    console.log('📝 Credentials:');
+    console.log('   Admin Login: admin@micromind.com / admin123');
+    console.log('   Sales Rep:   user@acme.com / user123');
     console.log('');
 }
 
