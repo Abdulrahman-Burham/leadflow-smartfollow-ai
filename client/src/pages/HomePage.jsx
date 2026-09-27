@@ -197,7 +197,7 @@ function HomePage() {
                     </button>
 
                     <button
-                        onClick={() => navigate('/automations')}
+                        onClick={() => navigate('/automations-hub')}
                         style={{
                             background: 'rgba(255,255,255,0.08)',
                             color: 'var(--text-primary)',
